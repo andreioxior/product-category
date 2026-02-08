@@ -78,11 +78,23 @@
                                     ${{ number_format($product->price, 2) }}
                                 </flux:text>
 
-                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
                                     <div>
                                         <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">Manufacturer</flux:text>
                                         <p class="font-medium">{{ $product->manufacturer }}</p>
                                     </div>
+                                    @if($product->model)
+                                    <div>
+                                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">Model</flux:text>
+                                        <p class="font-medium">{{ $product->model }}</p>
+                                    </div>
+                                    @endif
+                                    @if($product->year)
+                                    <div>
+                                        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">Year</flux:text>
+                                        <p class="font-medium">{{ $product->year }}</p>
+                                    </div>
+                                    @endif
                                     <div>
                                         <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">Type</flux:text>
                                         <p class="font-medium">{{ $product->type }}</p>
@@ -119,6 +131,18 @@
                                             <span class="text-zinc-600 dark:text-zinc-400">Manufacturer</span>
                                             <span class="font-medium">{{ $product->manufacturer }}</span>
                                         </div>
+                                        @if($product->model)
+                                        <div class="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
+                                            <span class="text-zinc-600 dark:text-zinc-400">Model</span>
+                                            <span class="font-medium">{{ $product->model }}</span>
+                                        </div>
+                                        @endif
+                                        @if($product->year)
+                                        <div class="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
+                                            <span class="text-zinc-600 dark:text-zinc-400">Year</span>
+                                            <span class="font-medium">{{ $product->year }}</span>
+                                        </div>
+                                        @endif
                                         <div class="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
                                             <span class="text-zinc-600 dark:text-zinc-400">Type</span>
                                             <span class="font-medium">{{ $product->type }}</span>

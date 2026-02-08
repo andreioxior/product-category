@@ -40,10 +40,16 @@ class ProductList extends Component
     public function render(): \Illuminate\View\View
     {
         $products = Product::query()
-            ->with('category')
-            ->where('name', 'ilike', "%{$this->search}%")
+            ->with(['category', 'bike'])
+            ->when($this->search, function ($query) {
+                $query->where('name', 'ilike', "%{$this->search}%")
+                    ->orWhereHas('bike', function ($bikeQuery) {
+                        $bikeQuery->where('manufacturer', 'ilike', "%{$this->search}%")
+                            ->orWhere('model', 'ilike', "%{$this->search}%");
+                    });
+            })
             ->when($this->category, fn ($query) => $query->where('category_id', $this->category))
-            ->orderBy('name')
+            ->orderByDesc('created_at') // Sort by latest first
             ->paginate(20);
 
         return view('livewire.admin.product-list', [

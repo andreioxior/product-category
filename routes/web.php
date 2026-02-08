@@ -38,11 +38,24 @@ Route::get('/admin/categories/{category}/edit', \App\Livewire\Admin\CategoryForm
     ->middleware(['auth', 'verified'])
     ->name('admin.categories.edit');
 
+Route::get('/test-before-products', function () {
+    return '<h1>Test before products works!</h1>';
+});
+
 Route::get('/products', \App\Livewire\ProductListing::class)
     ->name('products');
 
 Route::get('/products/{product}', \App\Livewire\ProductDetail::class)
     ->name('products.show');
+
+Route::get('/bikes/{manufacturer}', \App\Livewire\BikeManufacturerListing::class)
+    ->name('bikes.manufacturer');
+
+Route::get('/bikes/{manufacturer}/{model}', \App\Livewire\BikeModelListing::class)
+    ->name('bikes.model');
+
+Route::get('/bikes/{manufacturer}/{model}/{year}', \App\Livewire\BikeProductListing::class)
+    ->name('bikes.show');
 
 Route::get('/checkout', \App\Livewire\Checkout::class)
     ->name('checkout');

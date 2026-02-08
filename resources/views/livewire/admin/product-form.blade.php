@@ -11,6 +11,145 @@
                 </flux:button>
             </div>
 
+            <!-- Hidden manufacturer field for backward compatibility -->
+<div style="display: none;">
+    <flux:input wire:model="manufacturer" type="hidden" />
+</div>
+
+            <!-- Bike Selection/Creation Section -->
+            <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 space-y-4">
+                <flux:heading level="3">Bike Information</flux:heading>
+                
+                <div class="space-y-2">
+                    <flux:label for="bike_selection">Bike Selection Mode</flux:label>
+                    <flux:select id="bike_selection" wire:model.live="createNewBike">
+                        <option value="0">Select existing bike</option>
+                        <option value="1">Create new bike</option>
+                    </flux:select>
+                    @error('createNewBike')
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                    @enderror
+                </div>
+
+                @if($createNewBike === '0')
+                    <div class="space-y-2">
+                        <flux:label for="bike_id">Select Bike</flux:label>
+                        <flux:select id="bike_id" wire:model="bike_id">
+                            <option value="">Choose a bike...</option>
+                            @foreach($availableBikes->sortByDesc('year')->sortBy('manufacturer')->sortBy('model') as $bike)
+                                <option value="{{ $bike->id }}">
+                                    {{ $bike->manufacturer }} {{ $bike->model }} {{ $bike->year }}
+                                </option>
+                            @endforeach
+                        </flux:select>
+                        @error('bike_id')
+                            <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                        @enderror
+                    </div>
+                @endif
+
+                @if($createNewBike === '1')
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <flux:label for="bike_manufacturer">Manufacturer</flux:label>
+                            <div class="relative">
+                                <flux:input 
+                                    id="bike_manufacturer" 
+                                    wire:model.live="bike_manufacturer"
+                                    type="text"
+                                    placeholder="Type manufacturer..."
+                                    list="manufacturers"
+                                    class="w-full"
+                                />
+                                <datalist id="manufacturers">
+                                    @foreach($availableManufacturers as $mfg)
+                                        <option value="{{ $mfg }}">{{ $mfg }}</option>
+                                    @endforeach
+                                </datalist>
+                                @if($manufacturerSuggestions)
+                                    <div class="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                                        <div class="p-1">
+                                            @foreach($manufacturerSuggestions as $suggestion)
+                                                <button 
+                                                    type="button" 
+                                                    wire:click="$set('bike_manufacturer', '{{ $suggestion }}'); $refresh()"
+                                                    class="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                                                >
+                                                    {{ $suggestion }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                            @error('bike_manufacturer')
+                                <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                            @enderror
+                        </div>
+
+                        <div class="space-y-2">
+                            <flux:label for="bike_model">Model</flux:label>
+                            <div class="relative">
+                                <flux:input 
+                                    id="bike_model" 
+                                    wire:model.live="bike_model"
+                                    type="text"
+                                    placeholder="Type model name..."
+                                    list="models"
+                                    class="w-full"
+                                />
+                                <datalist id="models">
+                                    @if($bike_manufacturer)
+                                        @foreach($availableModels as $model)
+                                            <option value="{{ $model }}">{{ $model }}</option>
+                                        @endforeach
+                                    @endif
+                                </datalist>
+                                @if($showModelSuggestions && $modelSuggestions)
+                                    <div class="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                                        <div class="p-1">
+                                            @foreach($modelSuggestions as $suggestion)
+                                                <button 
+                                                    type="button" 
+                                                    wire:click="$set('bike_model', '{{ $suggestion }}'); $refresh()"
+                                                    class="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                                                >
+                                                    {{ $suggestion }}
+                                                </button>
+                                            @endforeach
+                                            @if($availableModels->count() === 0 && $bike_model)
+                                                <div class="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">
+                                                    No matches. Create new model?
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                            @error('bike_model')
+                                <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                            @enderror
+                        </div>
+
+                        <div class="space-y-2">
+                            <flux:label for="bike_year">Year</flux:label>
+                            <flux:input 
+                                id="bike_year" 
+                                wire:model.live="bike_year"
+                                type="number"
+                                min="1950" 
+                                max="{{ date('Y') }}"
+                                placeholder="Year..."
+                                class="w-full"
+                            />
+                            @error('bike_year')
+                                <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                            @enderror
+                        </div>
+                    </div>
+                @endif
+            </div>
+
             <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
@@ -21,9 +160,9 @@
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                             @endforeach
                         </flux:select>
-                        @error('category_id')
-                            <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
-                        @enderror
+                    @error('category_id')
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                    @enderror
                     </div>
 
                     <div class="space-y-2">
@@ -34,9 +173,9 @@
                             type="text"
                             placeholder="Product SKU"
                         ></flux:input>
-                        @error('sku')
-                            <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
-                        @enderror
+                    @error('sku')
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                    @enderror
                     </div>
                 </div>
 
@@ -48,9 +187,9 @@
                         type="text"
                         placeholder="Product name"
                     ></flux:input>
-                    @error('name')
-                        <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
-                    @enderror
+                @error('name')
+                    <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                @enderror
                 </div>
 
                 <div class="space-y-2">
@@ -72,7 +211,7 @@
                         placeholder="https://example.com/image.jpg"
                     ></flux:input>
                     @error('image')
-                        <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
                     @enderror
                     @if ($image)
                         <div class="mt-2">
@@ -81,32 +220,17 @@
                     @endif
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <flux:label for="product_type">Type</flux:label>
-                        <flux:input
-                            id="product_type"
-                            wire:model="type"
-                            type="text"
-                            placeholder="Product type"
-                        ></flux:input>
-                        @error('type')
-                            <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
-                        @enderror
-                    </div>
-
-                    <div class="space-y-2">
-                        <flux:label for="manufacturer">Manufacturer</flux:label>
-                        <flux:input
-                            id="manufacturer"
-                            wire:model="manufacturer"
-                            type="text"
-                            placeholder="Manufacturer name"
-                        ></flux:input>
-                        @error('manufacturer')
-                            <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
-                        @enderror
-                    </div>
+                <div class="space-y-2">
+                    <flux:label for="product_type">Type</flux:label>
+                    <flux:input
+                        id="product_type"
+                        wire:model="type"
+                        type="text"
+                        placeholder="Product type"
+                    ></flux:input>
+                @error('type')
+                    <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+                @enderror
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -124,7 +248,7 @@
                             ></flux:input>
                         </div>
                         @error('price')
-                            <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
+                            <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
                         @enderror
                     </div>
 
@@ -138,7 +262,7 @@
                             placeholder="Stock quantity"
                         ></flux:input>
                         @error('stock_quantity')
-                            <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
+                            <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
                         @enderror
                     </div>
                 </div>

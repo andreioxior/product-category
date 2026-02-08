@@ -21,7 +21,7 @@
                         placeholder="Category name"
                     ></flux:input>
                     @error('name')
-                        <flux:text color="danger" class="text-sm">{{ $message }}</flux:text>
+                        <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
                     @enderror
                 </div>
 
