@@ -40,7 +40,10 @@
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-semibold text-base truncate">{{ $product->name }}</h3>
                                 <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                                    {{ $product->manufacturer }} · {{ $product->type }} · ${{ number_format($product->price, 2) }}
+                                    {{ $product->manufacturer }}
+                                    @if($product->model) · {{ $product->model }} @endif
+                                    @if($product->year) · {{ $product->year }} @endif
+                                    · {{ $product->type }} · ${{ number_format($product->price, 2) }}
                                 </p>
                                 <div class="flex items-center gap-2 mt-2">
                                     @if ($product->category)

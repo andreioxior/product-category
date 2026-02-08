@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Bike;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -10,6 +11,7 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         $category = Category::inRandomOrder()->first() ?? Category::factory()->create();
+        $bike = Bike::inRandomOrder()->first() ?? Bike::factory()->create();
 
         $types = [
             'Sport', 'Cruiser', 'Touring', 'Naked', 'Adventure',
@@ -26,26 +28,10 @@ class ProductFactory extends Factory
             'Cover', 'Stand',
         ];
 
-        $manufacturers = [
-            'Honda', 'Yamaha', 'Kawasaki', 'Suzuki', 'Ducati',
-            'BMW', 'KTM', 'Harley-Davidson', 'Indian', 'Triumph',
-            'Victory', 'Aprilia', 'Moto Guzzi', 'Buell', 'MV Agusta',
-            'Bimota', 'Benelli', 'Husqvarna', 'Gas Gas', 'Beta',
-            'Sherco', 'Vespa', 'Piaggio', 'Kymco', 'SYM',
-            'Gogoro', 'Zero', 'Energica', 'Brammo', 'Segway',
-            'NIU', 'Super Soco', 'Voi', 'Askoll', 'E-Glow',
-            'Arc', 'Ride1Up', 'Sur-Ron', 'Cake', 'Urbeto',
-            'Bosch', 'Brembo', 'Ohlins', 'Showa', 'Kayaba',
-            'Michelin', 'Pirelli', 'Dunlop', 'Bridgestone', 'Metzeler',
-            'Alpinestars', 'Dainese', 'Revit', 'Klim', 'Fox',
-            'Shoei', 'Arai', 'Bell', 'AGV', 'HJC',
-        ];
-
         $type = $this->faker->randomElement($types);
-        $manufacturer = $this->faker->randomElement($manufacturers);
         $basePrice = $this->faker->numberBetween(100, 50000);
 
-        $name = $this->generateProductName($type, $manufacturer, $category->name);
+        $name = $this->generateProductName($type, $bike, $category->name);
 
         $images = [
             'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=400&fit=crop',
@@ -62,37 +48,21 @@ class ProductFactory extends Factory
 
         return [
             'category_id' => $category->id,
+            'bike_id' => $bike->id,
             'name' => $name,
             'description' => $this->generateDescription($type),
             'image' => $this->faker->randomElement($images),
             'type' => $type,
-            'manufacturer' => $manufacturer,
             'price' => $basePrice,
-            'sku' => strtoupper($this->faker->bothify($manufacturer.'??-####')),
+            'sku' => strtoupper($this->faker->bothify($bike->manufacturer.'??-####')),
             'stock_quantity' => $this->faker->numberBetween(0, 50),
             'is_active' => true,
         ];
     }
 
-    private function generateProductName(string $type, string $manufacturer, string $category): string
+    private function generateProductName(string $type, Bike $bike, string $category): string
     {
-        $models = [
-            'Pro', 'Elite', 'Expert', 'Comp', 'Sport', 'Race', 'GT',
-            'Performance', 'Street', 'Cross Country', 'Motocross', 'Dual Sport',
-            'Enduro', 'Adventure', 'Supermoto', 'Cruiser', 'Touring',
-            'Standard', 'Naked', 'Retro', 'Classic', 'Vintage', 'Modern',
-            'Electric', 'Hybrid', 'Commuter', 'Urban', 'Scooter', 'Moped',
-            'Carbon', 'Aluminum', 'Steel', 'Titanium', 'Lightweight', 'Heavy Duty',
-            'Custom', 'Limited Edition', 'Special Edition', 'Anniversary', 'Commemorative',
-            'Track', 'Superbike', 'Hyperbike', 'Powerhouse', 'Torque', 'Thunder',
-        ];
-
-        $years = [2023, 2024, 2025, 2026];
-
-        return $this->faker->randomElement($years).' '.
-               $manufacturer.' '.
-               $this->faker->randomElement($models).' '.
-               $type;
+        return $bike->year.' '.$bike->manufacturer.' '.$bike->model.' '.$type;
     }
 
     private function generateDescription(string $type): string

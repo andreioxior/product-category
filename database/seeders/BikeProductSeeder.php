@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Bike;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
@@ -10,7 +11,13 @@ class BikeProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('Seeding bike products...');
+        $this->command->info('Seeding motorbike products...');
+
+        $this->command->warn('Deleting existing data...');
+        Product::query()->delete();
+        Category::query()->delete();
+
+        $this->call(BikeSeeder::class);
 
         $this->command->info('Creating 50 categories...');
         Category::factory()->count(50)->create();
@@ -18,7 +25,8 @@ class BikeProductSeeder extends Seeder
         $this->command->info('Creating 500 products...');
         Product::factory()->count(500)->create();
 
-        $this->command->info('Bike product seeding completed!');
+        $this->command->info('Motorbike product seeding completed!');
+        $this->command->info('Total Bikes: '.Bike::count());
         $this->command->info('Total Categories: '.Category::count());
         $this->command->info('Total Products: '.Product::count());
     }
