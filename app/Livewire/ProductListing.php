@@ -160,6 +160,7 @@ class ProductListing extends Component
             $searchResults = $searchResults
                 ->when($this->category, fn ($query) => $query->where('category_id', $this->category))
                 ->when($this->type, fn ($query) => $query->where('type', $this->type))
+                ->when($this->manufacturer, fn ($query) => $query->where('manufacturer', $this->manufacturer))
                 ->when($this->minPrice, fn ($query) => $query->where('price', '>=', $this->minPrice))
                 ->when($this->maxPrice, fn ($query) => $query->where('price', '<=', $this->maxPrice));
 
@@ -176,6 +177,7 @@ class ProductListing extends Component
         $query = $query
             ->when($this->category, fn ($query) => $query->where('category_id', $this->category))
             ->when($this->type, fn ($query) => $query->where('type', $this->type))
+            ->when($this->manufacturer, fn ($query) => $query->whereHas('bike', fn ($bikeQuery) => $bikeQuery->where('bikes.manufacturer', $this->manufacturer)))
             ->when($this->minPrice, fn ($query) => $query->where('price', '>=', $this->minPrice))
             ->when($this->maxPrice, fn ($query) => $query->where('price', '<=', $this->maxPrice))
             ->when($this->sort === 'name_asc', fn ($query) => $query->orderBy('name'))
@@ -204,10 +206,14 @@ class ProductListing extends Component
     public function getAvailableManufacturersProperty()
     {
         return Product::where('is_active', true)
-            ->select('manufacturer')
-            ->distinct()
-            ->orderBy('manufacturer')
-            ->pluck('manufacturer');
+            ->whereHas('bike')
+            ->with('bike')
+            ->get()
+            ->pluck('bike.manufacturer')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
     }
 
     public function getPriceRangeProperty()
