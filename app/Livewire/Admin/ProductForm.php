@@ -38,7 +38,7 @@ class ProductForm extends Component
 
     public string $bike_model = '';
 
-    public int $bike_year;
+    public ?int $bike_year = null;
 
     #[Validate('required|numeric|min:0')]
     public float $price = 0;
@@ -93,12 +93,12 @@ class ProductForm extends Component
             $this->sku = $product->sku;
             $this->stock_quantity = $product->stock_quantity;
             $this->is_active = $product->is_active;
-            $this->bike_id = $product->bike_id;
+            $this->bike_id = $product->bike_id ? (int) $product->bike_id : null;
 
             if ($product->bike) {
                 $this->bike_manufacturer = $product->bike->manufacturer;
                 $this->bike_model = $product->bike->model;
-                $this->bike_year = $product->bike->year;
+                $this->bike_year = (int) $product->bike->year;
             }
 
             $this->isEditing = true;
@@ -124,7 +124,7 @@ class ProductForm extends Component
             $this->manufacturer = $bike->manufacturer;
         } else {
             // Set manufacturer from selected bike for backward compatibility
-            $bike = Bike::find($this->bike_id);
+            $bike = Bike::find((int) $this->bike_id);
             $this->manufacturer = $bike?->manufacturer;
         }
 
@@ -164,7 +164,7 @@ class ProductForm extends Component
             // Switching to existing bike mode
             $this->bike_manufacturer = '';
             $this->bike_model = '';
-            $this->bike_year = '';
+            $this->bike_year = null;
             $this->availableModels = collect([]);
             $this->availableYears = collect([]);
         }
@@ -199,7 +199,7 @@ class ProductForm extends Component
         }
 
         $this->bike_model = '';
-        $this->bike_year = 2026;
+        $this->bike_year = (int) date('Y');
     }
 
     public function updatedBikeModel($value): void
@@ -233,7 +233,7 @@ class ProductForm extends Component
             $this->showModelSuggestions = false;
         }
 
-        $this->bike_year = 2026;
+        $this->bike_year = (int) date('Y');
     }
 
     public function rules(): array
@@ -266,6 +266,7 @@ class ProductForm extends Component
             $rules['bike_year'] = 'required|integer|min:1950|max:'.(int) date('Y');
         } else {
             $rules['bike_id'] = 'required|exists:bikes,id';
+            $rules['bike_year'] = 'nullable|integer|min:1950|max:'.(int) date('Y');
         }
 
         return $rules;
