@@ -165,8 +165,8 @@ return [
                     'default_sorting_field' => 'price',
                 ],
                 'search-parameters' => [
-                    'query_by' => 'name,manufacturer,model,year,description,category_name',
-                    'query_by_weights' => '5,4,4,3,1,1',
+                    'query_by' => 'name,manufacturer,model,year,description,category_name,type',
+                    'query_by_weights' => '5,4,4,3,1,1,2',
                     'highlight_fields' => 'name,manufacturer,model,year',
                     'highlight_start_tag' => '<mark>',
                     'highlight_end_tag' => '</mark>',

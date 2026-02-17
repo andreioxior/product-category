@@ -16,10 +16,10 @@ class ProductSearch extends Component
 
     public int $maxSuggestions = 8;
 
-public function updatedSearch(): void
+    public function updatedSearch(): void
     {
         $this->showSuggestions = strlen($this->search) >= 2;
-        
+
         // Debug logging
         if (strlen($this->search) >= 2) {
             Log::info('ProductSearch: Searching for', ['query' => $this->search]);
@@ -57,15 +57,15 @@ public function updatedSearch(): void
         }
 
         try {
-            Log::info('ProductSearch: Searching for "' . $this->search . '"');
-            
+            Log::info('ProductSearch: Searching for "'.$this->search.'"');
+
             // Test basic search first
             $results = Product::search($this->search)
                 ->where('is_active', true)
                 ->take($this->maxSuggestions)
                 ->get();
 
-            Log::info('ProductSearch: Found ' . $results->count() . ' results');
+            Log::info('ProductSearch: Found '.$results->count().' results');
 
             $suggestions = [];
             foreach ($results as $product) {
@@ -80,10 +80,12 @@ public function updatedSearch(): void
                 ];
             }
 
-            Log::info('ProductSearch: Returning ' . count($suggestions) . ' suggestions');
+            Log::info('ProductSearch: Returning '.count($suggestions).' suggestions');
+
             return $suggestions;
         } catch (\Exception $e) {
-            Log::error('ProductSearch suggestions error: ' . $e->getMessage());
+            Log::error('ProductSearch suggestions error: '.$e->getMessage());
+
             return [];
         }
     }

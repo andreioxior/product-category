@@ -4,27 +4,22 @@
 
         <flux:main>
             <div class="px-4 sm:px-6 lg:px-8 py-8">
-                <nav class="flex items-center space-x-2 text-sm mb-8">
-                        <a href="{{ route('home') }}" class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
-                            Home
-                        </a>
-                        <a href="{{ route('products') }}" class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
-                            Products
-                        </a>
-                        <span class="text-zinc-400">/</span>
-                        <span class="text-zinc-900 dark:text-zinc-100 font-medium">{{ $product->name }}</span>
-                    </nav>
+                <x-breadcrumbs :items="$breadcrumbItems" />
 
                     @if ($product)
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                             <div class="space-y-6">
                                 @if ($product->image)
                                     <div class="aspect-square bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
-                                        <img
-                                            src="{{ $product->image }}"
-                                            alt="{{ $product->name }}"
-                                            class="w-full h-full object-cover"
-                                        />
+                                            <img
+                                                src="{{ $product->image }}"
+                                                alt="{{ $product->name }}"
+                                                class="w-full h-full object-cover"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="600"
+                                                height="600"
+                                            />
                                     </div>
                                 @else
                                     <div class="aspect-square bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center">

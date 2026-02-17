@@ -74,7 +74,7 @@ class ProductForm extends Component
     {
         // Set default year to current year
         $this->bike_year = (int) date('Y');
-        
+
         // Initialize collections
         $this->availableBikes = Bike::active()->get();
         $this->availableManufacturers = Bike::active()->distinct()->orderBy('manufacturer')->pluck('manufacturer');
@@ -253,16 +253,16 @@ class ProductForm extends Component
         if ($this->createNewBike === '1') {
             $bikeManufacturer = $this->bike_manufacturer ?? '';
             $rules['bike_manufacturer'] = 'required|string|max:255';
-            
+
             // Skip unique validation for bike model when editing and keeping the same bike
-            if ($this->isEditing && $this->product && $this->product->bike && 
-                $this->product->bike->manufacturer === $bikeManufacturer && 
+            if ($this->isEditing && $this->product && $this->product->bike &&
+                $this->product->bike->manufacturer === $bikeManufacturer &&
                 $this->product->bike->model === $this->bike_model) {
                 $rules['bike_model'] = 'required|string|max:255';
             } else {
                 $rules['bike_model'] = 'required|string|max:255|unique:bikes,model,NULL,id,manufacturer,'.$bikeManufacturer;
             }
-            
+
             $rules['bike_year'] = 'required|integer|min:1950|max:'.(int) date('Y');
         } else {
             $rules['bike_id'] = 'required|exists:bikes,id';

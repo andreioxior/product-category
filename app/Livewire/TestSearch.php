@@ -7,6 +7,7 @@ use Livewire\Component;
 class TestSearch extends Component
 {
     public string $search = '';
+
     public array $results = [];
 
     public function updatedSearch(): void

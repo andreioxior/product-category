@@ -8,6 +8,7 @@ use Livewire\Component;
 class SearchTest extends Component
 {
     public string $search = '';
+
     public array $results = [];
 
     public function updatedSearch(): void

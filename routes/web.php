@@ -42,11 +42,12 @@ Route::get('/test-before-products', function () {
     return '<h1>Test before products works!</h1>';
 });
 
-Route::get('/products', \App\Livewire\ProductListing::class)
+Route::get('/products', \App\Livewire\ProductListingCached::class)
     ->name('products');
 
 Route::get('/products/{product}', \App\Livewire\ProductDetail::class)
-    ->name('products.show');
+    ->name('products.show')
+    ->middleware(['cache.headers:public;max_age=3600', 'compress']); // 1 hour cache + compression
 
 Route::get('/bikes/{manufacturer}', \App\Livewire\BikeManufacturerListing::class)
     ->name('bikes.manufacturer');

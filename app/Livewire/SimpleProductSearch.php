@@ -2,16 +2,19 @@
 
 namespace App\Livewire;
 
-use App\Models\Product;
 use App\Services\ProductSearchService;
 use Livewire\Component;
 
 class SimpleProductSearch extends Component
 {
     public string $search = '';
+
     public array $suggestions = [];
+
     public string $searchType = 'all';
+
     public array $facets = [];
+
     public bool $loading = false;
 
     protected ProductSearchService $searchService;
@@ -46,7 +49,7 @@ class SimpleProductSearch extends Component
     {
         $searchData = $this->searchService->enhancedAutocomplete($this->search, [
             'search_type' => $this->searchType,
-            'limit' => 8
+            'limit' => 8,
         ]);
 
         $this->suggestions = $searchData['results'];
@@ -70,14 +73,14 @@ class SimpleProductSearch extends Component
             'name' => ['label' => 'Product Name', 'icon' => 'tag'],
             'manufacturer' => ['label' => 'Manufacturer', 'icon' => 'building'],
             'model' => ['label' => 'Model', 'icon' => 'gear'],
-            'year' => ['label' => 'Year', 'icon' => 'calendar']
+            'year' => ['label' => 'Year', 'icon' => 'calendar'],
         ];
     }
 
     public function render(): \Illuminate\View\View
     {
         return view('livewire.simple-product-search', [
-            'searchTypeOptions' => $this->getSearchTypeOptions()
+            'searchTypeOptions' => $this->getSearchTypeOptions(),
         ]);
     }
 }

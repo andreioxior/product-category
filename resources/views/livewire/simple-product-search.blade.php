@@ -2,7 +2,7 @@
     <!-- Search Input with Loading State -->
     <div class="relative">
         <flux:input
-            wire:model.live="search"
+            wire:model.debounce.300ms="search"
             placeholder="Search products, manufacturers, models..."
             wire:loading.class="pe-10"
             wire:target="search"

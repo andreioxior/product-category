@@ -153,7 +153,7 @@
 
                     @if ($filteredProducts->hasPages())
                         <div class="flex items-center justify-center mt-8">
-                            {!! $filteredProducts->appends(['sort' => $sort])->links() !!}
+                            {{ $filteredProducts->links('pagination.livewire-tailwind') }}
                         </div>
                     @endif
                 @endif

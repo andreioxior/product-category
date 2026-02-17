@@ -9,12 +9,12 @@
         <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <div class="p-4 border-b border-zinc-200 dark:border-zinc-700 space-y-4">
                 <flux:input
-                    wire:model.live="search"
+                    wire:model.debounce.300ms="search"
                     placeholder="Search products..."
                     type="text"
                 />
                 <flux:select
-                    wire:model.live="category"
+                    wire:model.lazy="category"
                     placeholder="All Categories"
                 >
                     <option value="">All Categories</option>
@@ -29,7 +29,15 @@
                     @foreach ($products as $product)
                         <div class="flex items-center gap-4 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-700">
                             @if ($product->image)
-                                <img src="{{ $product->image }}" alt="{{ $product->name }}" class="w-16 h-16 rounded-md object-cover" loading="lazy" />
+                                <img 
+                                    src="{{ $product->image }}" 
+                                    alt="{{ $product->name }}" 
+                                    class="w-16 h-16 rounded-md object-cover" 
+                                    loading="lazy"
+                                    decoding="async"
+                                    width="64"
+                                    height="64"
+                                />
                             @else
                                 <div class="w-16 h-16 rounded-md bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
                                     <svg class="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +88,7 @@
                 </div>
 
                 <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
-                    {{ $products->links() }}
+                    {{ $products->links('pagination.livewire-tailwind') }}
                 </div>
             @else
                 <div class="p-12 text-center text-zinc-500 dark:text-zinc-400">

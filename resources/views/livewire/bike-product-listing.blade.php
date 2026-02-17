@@ -86,9 +86,17 @@
                             <div class="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                                 <a href="{{ route('products.show', $product) }}" class="block">
                                     <div class="aspect-square bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
-                                        @if ($product->image)
-                                            <img src="{{ $product->image }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-                                        @else
+                                            @if ($product->image)
+                                             <img 
+                                                src="{{ $product->image }}" 
+                                                alt="{{ $product->name }}" 
+                                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="400"
+                                                height="400"
+                                            />
+                                            @else
                                             <svg class="w-20 h-20 text-zinc-300 dark:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                             </svg>
@@ -134,7 +142,7 @@
 
                     @if ($filteredProducts->hasPages())
                         <div class="flex items-center justify-center mt-8">
-                            {!! $filteredProducts->appends(['sort' => $sort])->links() !!}
+                            {{ $filteredProducts->links('pagination.livewire-tailwind') }}
                         </div>
                     @endif
                 @endif

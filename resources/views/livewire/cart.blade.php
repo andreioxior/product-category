@@ -49,7 +49,15 @@
                     @foreach ($cart as $item)
                         <div class="flex items-center gap-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             @if ($item['image'])
-                                <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="w-20 h-20 rounded-md object-cover" />
+                                <img 
+                                    src="{{ $item['image'] }}" 
+                                    alt="{{ $item['name'] }}" 
+                                    class="w-20 h-20 rounded-md object-cover" 
+                                    loading="lazy"
+                                    decoding="async"
+                                    width="80"
+                                    height="80"
+                                />
                             @else
                                 <div class="w-20 h-20 rounded-md bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center">
                                     <svg class="w-10 h-10 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

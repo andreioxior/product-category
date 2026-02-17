@@ -17,19 +17,21 @@ class Product extends Model
         'name',
         'description',
         'image',
+        'image_local_path',
+        'image_cdn_url',
+        'image_metadata',
+        'image_hosted_locally',
+        'image_synced_at',
         'type',
         'price',
         'sku',
         'stock_quantity',
         'is_active',
-    ];
-
-    protected $casts = [
-        'category_id' => 'integer',
-        'bike_id' => 'integer',
-        'price' => 'decimal:2',
-        'stock_quantity' => 'integer',
-        'is_active' => 'boolean',
+        'image_local_path',
+        'image_cdn_url',
+        'image_metadata',
+        'image_hosted_locally',
+        'image_synced_at',
     ];
 
     public function category(): BelongsTo
@@ -102,5 +104,31 @@ class Product extends Model
     public function shouldBeSearchable(): bool
     {
         return $this->is_active;
+    }
+
+    /**
+     * Get local image URL with fallback to original.
+     */
+    public function getLocalImageUrlAttribute(): ?string
+    {
+        if ($this->image_local_path && $this->image_hosted_locally) {
+            return asset("storage/products/original/{$this->image_local_path}");
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the best available image URL with fallback.
+     */
+    public function getBestImageUrlAttribute(): string
+    {
+        // Prefer local image if available
+        if ($this->image_hosted_locally && $this->image_local_path) {
+            return asset("storage/products/original/{$this->image_local_path}");
+        }
+
+        // Fallback to original URL
+        return $this->image;
     }
 }

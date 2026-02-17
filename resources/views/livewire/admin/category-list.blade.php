@@ -9,7 +9,7 @@
         <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
             <div class="p-4 border-b border-zinc-200 dark:border-zinc-700">
                 <flux:input
-                    wire:model.live="search"
+                    wire:model.debounce.300ms="search"
                     placeholder="Search categories..."
                     type="text"
                 />
@@ -49,7 +49,7 @@
                 </div>
 
                 <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
-                    {{ $categories->links() }}
+                    {{ $categories->links('pagination.livewire-tailwind') }}
                 </div>
             @else
                 <div class="p-12 text-center text-zinc-500 dark:text-zinc-400">

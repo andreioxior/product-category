@@ -2,7 +2,7 @@
     <h3 class="text-lg font-bold mb-2">Test Search Component</h3>
     
     <flux:input
-        wire:model.live="search"
+        wire:model.debounce.300ms="search"
         placeholder="Type to test..."
     />
     

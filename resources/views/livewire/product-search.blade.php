@@ -1,7 +1,7 @@
 <div class="relative w-full max-w-md">
     <!-- Debug: Component rendered, Search="{{ $search }}", ShowSuggestions="{{ $showSuggestions ? 'true' : 'false' }}", SuggestionsCount="{{ count($suggestions) }}" -->
     <flux:input
-        wire:model.live="search"
+        wire:model.debounce.300ms="search"
         placeholder="Search products..."
         x-on:keydown.enter="$wire.performSearch()"
         x-ref="searchInput"

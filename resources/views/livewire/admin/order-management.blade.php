@@ -6,11 +6,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <flux:label>Search Orders</flux:label>
-                        <flux:input wire:model.live="search" type="text" placeholder="Order #, name, email..."></flux:input>
+                        <flux:input wire:model.debounce.300ms="search" type="text" placeholder="Order #, name, email..."></flux:input>
                     </div>
                     <div>
                         <flux:label>Status Filter</flux:label>
-                        <flux:select wire:model.live="statusFilter">
+                        <flux:select wire:model.lazy="statusFilter">
                             <option value="">All Statuses</option>
                             @foreach ($this->statusOptions as $key => $label)
                                 <option value="{{ $key }}">{{ $label }}</option>
@@ -19,7 +19,7 @@
                     </div>
                     <div>
                         <flux:label>Show</flux:label>
-                        <flux:select wire:model.live="showArchived">
+                        <flux:select wire:model.lazy="showArchived">
                             <option value="0">Active Orders</option>
                             <option value="1">Archived Orders</option>
                         </flux:select>
@@ -215,7 +215,7 @@
             </div>
 
             <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
-                {{ $this->orders->appends(['search' => $search, 'statusFilter' => $statusFilter, 'showArchived' => $showArchived])->links() }}
+                {{ $this->orders->links('pagination.livewire-tailwind') }}
             </div>
         </div>
     </div>
