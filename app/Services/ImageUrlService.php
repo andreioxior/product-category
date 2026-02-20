@@ -13,7 +13,14 @@ class ImageUrlService
      */
     public static function getProductImageUrl(Product $product, ?int $width = null, ?int $height = null): string
     {
-        // Try smart image first (non-blocking for performance)
+        // Use original image if available
+        $originalImage = $product->image ?? null;
+
+        if ($originalImage && self::isValidImageUrl($originalImage)) {
+            return $originalImage;
+        }
+
+        // Try smart image as fallback (non-blocking for performance)
         try {
             $smartImageService = app(SmartImageService::class);
             $smartUrl = $smartImageService->getSmartImageUrl($product);
@@ -23,27 +30,26 @@ class ImageUrlService
             }
         } catch (\Exception $e) {
             // Log smart image failure but don't block page load
-            \Log::warning('Smart image service failed', [
+            Log::warning('Smart image service failed', [
                 'product_id' => $product->id,
                 'error' => $e->getMessage(),
             ]);
         }
 
-        // Fallback to current image system
-        $imagePath = $product->image_url ?? null;
+        // Final fallback to placeholder
+        return self::getPlaceholderUrl($product->name ?? 'product', $width, $height);
+    }
 
-        if (! $imagePath) {
-            // Generate a placeholder URL with product ID
-            return self::getPlaceholderUrl($product->name ?? 'product', $width, $height);
+    /**
+     * Check if URL is a valid image URL.
+     */
+    private static function isValidImageUrl(?string $url): bool
+    {
+        if (! $url) {
+            return false;
         }
 
-        // Check if image is a local file
-        if (self::isLocalImage($imagePath)) {
-            return self::getLocalImageUrl($imagePath, $width, $height);
-        }
-
-        // For remote images, return as-is or optimize
-        return $imagePath;
+        return str_starts_with($url, 'http://') || str_starts_with($url, 'https://');
     }
 
     /**

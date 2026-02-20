@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Scout\Searchable;
 
 class Product extends Model
@@ -27,12 +28,51 @@ class Product extends Model
         'sku',
         'stock_quantity',
         'is_active',
-        'image_local_path',
-        'image_cdn_url',
-        'image_metadata',
-        'image_hosted_locally',
-        'image_synced_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Product $product) {
+            $product->clearProductCache();
+            $product->clearCategoryCache();
+            $product->searchable();
+        });
+
+        static::updated(function (Product $product) {
+            $product->clearProductCache();
+            $product->clearCategoryCache();
+            $product->searchable();
+        });
+
+        static::deleted(function (Product $product) {
+            $product->clearProductCache();
+            $product->clearCategoryCache();
+            $product->unsearchable();
+        });
+    }
+
+    public function clearProductCache(): void
+    {
+        Cache::store('products')->clear();
+
+        Cache::forget('total_products_count');
+
+        Cache::forget('bike_manufacturers');
+
+        if ($this->bike) {
+            Cache::forget("bike_models_{$this->bike->manufacturer}");
+            Cache::forget("bike_years_{$this->bike->manufacturer}_{$this->bike->model}");
+        }
+    }
+
+    public function clearCategoryCache(): void
+    {
+        Cache::forget('categories_active');
+
+        if ($this->category_id) {
+            Cache::forget("category_products_{$this->category_id}");
+        }
+    }
 
     public function category(): BelongsTo
     {

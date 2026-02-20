@@ -1,4 +1,12 @@
 <div>
+    @push('meta')
+        <meta name="description" content="Browse our professional bike parts and accessories. Find mountain bikes, road bikes, components, and more at competitive prices." />
+        <meta property="og:title" content="{{ $pageTitle }}" />
+        <meta property="og:description" content="Browse our professional bike parts and accessories. Find mountain bikes, road bikes, components, and more." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+    @endpush
+    
     <livewire:cart />
 
     <flux:spacer size="4" />

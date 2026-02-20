@@ -51,6 +51,37 @@ class ProductListingCached extends Component
         $this->resetPage();
     }
 
+    public function getPageTitleProperty(): string
+    {
+        $parts = [];
+
+        if ($this->search) {
+            $parts[] = 'Search: '.$this->search;
+        }
+
+        if ($this->selectedCategory) {
+            $parts[] = $this->selectedCategory->name;
+        }
+
+        if ($this->selectedManufacturer) {
+            $parts[] = $this->selectedManufacturer;
+        }
+
+        if ($this->selectedModel) {
+            $parts[] = $this->selectedModel;
+        }
+
+        if ($this->selectedYear) {
+            $parts[] = $this->selectedYear;
+        }
+
+        if (empty($parts)) {
+            return config('app.name', 'Bike Shop').' - Professional Bike Parts & Accessories';
+        }
+
+        return implode(' | ', $parts).' | '.config('app.name', 'Bike Shop');
+    }
+
     public function getFilteredProductsProperty(): LengthAwarePaginator
     {
         $this->loading = true;
@@ -271,6 +302,7 @@ class ProductListingCached extends Component
     public function render(): \Illuminate\View\View
     {
         return view('livewire.product-listing-cached', [
+            'pageTitle' => $this->pageTitle,
             'products' => $this->filteredProducts,
             'categories' => $this->categories,
             'selectedCategory' => $this->selectedCategory,
