@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -96,7 +95,7 @@ class ProductListingCached extends Component
             'year' => $this->selectedYear,
             'page' => $this->getPage(),
         ];
-        $cacheKey = 'products_page_'.Str::hash(json_encode($filterData), true);
+        $cacheKey = 'products_page_'.md5(json_encode($filterData));
 
         // Cache products list for 30 minutes
         $result = Cache::store('products')->remember($cacheKey, now()->addMinutes(30), function () {
