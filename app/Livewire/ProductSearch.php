@@ -55,18 +55,19 @@ class ProductSearch extends Component
             return [];
         }
 
+        $debug = app()->isLocal();
+
         try {
-            if (app()->isLocal()) {
+            if ($debug) {
                 Log::info('ProductSearch: Searching for "'.$this->search.'"');
             }
 
-            // Test basic search first
             $results = Product::search($this->search)
                 ->where('is_active', true)
                 ->take($this->maxSuggestions)
                 ->get();
 
-            if (app()->isLocal()) {
+            if ($debug) {
                 Log::info('ProductSearch: Found '.$results->count().' results');
             }
 
@@ -83,13 +84,13 @@ class ProductSearch extends Component
                 ];
             }
 
-            if (app()->isLocal()) {
+            if ($debug) {
                 Log::info('ProductSearch: Returning '.count($suggestions).' suggestions');
             }
 
             return $suggestions;
         } catch (\Exception $e) {
-            if (app()->isLocal()) {
+            if ($debug) {
                 Log::error('ProductSearch suggestions error: '.$e->getMessage());
             }
 

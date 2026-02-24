@@ -110,7 +110,6 @@ class Product extends Model
      */
     public function toSearchableArray(): array
     {
-        // Only include active products
         if (! $this->is_active) {
             return [];
         }
@@ -120,9 +119,9 @@ class Product extends Model
             'name' => $this->name,
             'description' => $this->description,
             'category_name' => $this->category?->name,
-            'manufacturer' => $this->manufacturer,
-            'model' => $this->model,
-            'year' => (string) $this->year,
+            'manufacturer' => $this->bike?->manufacturer,
+            'model' => $this->bike?->model,
+            'year' => (string) $this->bike?->year,
             'type' => $this->type,
             'price' => (float) $this->price,
             'is_active' => $this->is_active,
