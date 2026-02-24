@@ -14,9 +14,16 @@ class ProductDetail extends Component
 {
     public ?Product $product = null;
 
+    public bool $showWishlistLoginPrompt = false;
+
     public function mount(Product $product): void
     {
         $this->product = $product->load(['category', 'bike']);
+    }
+
+    public function dismissWishlistPrompt(): void
+    {
+        $this->showWishlistLoginPrompt = false;
     }
 
     public function getIsInWishlistProperty(): bool
@@ -37,10 +44,7 @@ class ProductDetail extends Component
         }
 
         if (! Auth::check()) {
-            $this->dispatch('flash', [
-                'type' => 'warning',
-                'message' => 'Please log in to add items to your wishlist.',
-            ]);
+            $this->showWishlistLoginPrompt = true;
 
             return;
         }

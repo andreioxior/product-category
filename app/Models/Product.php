@@ -53,8 +53,6 @@ class Product extends Model
 
     public function clearProductCache(): void
     {
-        Cache::store('products')->clear();
-
         Cache::forget('total_products_count');
 
         Cache::forget('bike_manufacturers');

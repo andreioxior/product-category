@@ -47,7 +47,7 @@ Route::get('/products', \App\Livewire\ProductListingCached::class)
 
 Route::get('/products/{product}', \App\Livewire\ProductDetail::class)
     ->name('products.show')
-    ->middleware(['cache.headers:public;max_age=3600', 'compress']); // 1 hour cache + compression
+    ->middleware(['cache.headers:public;max_age=3600']);
 
 Route::get('/bikes/{manufacturer}', \App\Livewire\BikeManufacturerListing::class)
     ->name('bikes.manufacturer');

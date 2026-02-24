@@ -12,13 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
-            \App\Http\Middleware\CompressionMiddleware::class,
-        ]);
-
-        // Register custom middleware aliases
+        // Custom middleware aliases
         $middleware->alias([
-            'compress' => \App\Http\Middleware\ResponseCompression::class,
+            // Add custom aliases here if needed
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -70,6 +71,22 @@ class ImageUrlService
         return ! str_starts_with($path, 'http') &&
                ! str_starts_with($path, '//') &&
                ! str_contains($path, 'picsum.photos');
+    }
+
+    /**
+     * Check if local image file exists with caching.
+     */
+    public static function localImageExists(string $src): bool
+    {
+        if (! $src) {
+            return false;
+        }
+
+        $cacheKey = 'local_image_exists_'.md5($src);
+
+        return Cache::remember($cacheKey, now()->addHours(24), function () use ($src) {
+            return file_exists(public_path('images/products/'.basename($src)));
+        });
     }
 
     /**

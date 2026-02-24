@@ -171,12 +171,10 @@ class ProductListingCached extends Component
     {
         return Cache::remember('bike_manufacturers', now()->addHours(12), function () {
             return Product::whereHas('bike')
-                ->with('bike')
-                ->get()
-                ->pluck('bike.manufacturer')
-                ->unique()
-                ->sort()
-                ->values()
+                ->join('bikes', 'products.bike_id', '=', 'bikes.id')
+                ->distinct()
+                ->orderBy('bikes.manufacturer')
+                ->pluck('bikes.manufacturer')
                 ->toArray();
         });
     }
@@ -191,12 +189,10 @@ class ProductListingCached extends Component
             return Product::whereHas('bike', function ($query) {
                 $query->where('manufacturer', $this->selectedManufacturer);
             })
-                ->with('bike')
-                ->get()
-                ->pluck('bike.model')
-                ->unique()
-                ->sort()
-                ->values()
+                ->join('bikes', 'products.bike_id', '=', 'bikes.id')
+                ->distinct()
+                ->orderBy('bikes.model')
+                ->pluck('bikes.model')
                 ->toArray();
         });
     }
@@ -212,13 +208,10 @@ class ProductListingCached extends Component
                 $query->where('manufacturer', $this->selectedManufacturer)
                     ->where('model', $this->selectedModel);
             })
-                ->with('bike')
-                ->get()
-                ->pluck('bike.year')
-                ->unique()
-                ->sort()
-                ->reverse()
-                ->values()
+                ->join('bikes', 'products.bike_id', '=', 'bikes.id')
+                ->distinct()
+                ->orderByDesc('bikes.year')
+                ->pluck('bikes.year')
                 ->toArray();
         });
     }
@@ -295,8 +288,17 @@ class ProductListingCached extends Component
 
     public function addToCart(int $productId): void
     {
-        // Cart functionality would go here
-        $this->dispatch('cart-item-added', productId: $productId);
+        $product = Product::find($productId);
+        if (! $product) {
+            return;
+        }
+
+        $this->dispatch('addToCart', [
+            'productId' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price,
+            'image' => $product->image,
+        ]);
     }
 
     public function render(): \Illuminate\View\View

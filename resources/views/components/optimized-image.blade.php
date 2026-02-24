@@ -1,7 +1,9 @@
 @php
+    use App\Services\ImageUrlService;
+    
     $localImage = asset('images/products/' . basename($src ?? ''));
     $placeholderUrl = asset('images/product-placeholder.svg');
-    $useLocalFile = $src && file_exists(public_path('images/products/' . basename($src)));
+    $useLocalFile = $src && ImageUrlService::localImageExists($src);
 @endphp
 
 @if($src)
