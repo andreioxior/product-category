@@ -74,14 +74,14 @@ return [
 
         // Dedicated cache for products with optimized settings
         'products' => [
-            'driver' => 'redis',
+            'driver' => env('CACHE_STORES_PRODUCTS_DRIVER', 'redis'),
             'connection' => 'cache',
             'prefix' => 'products_cache',
         ],
 
         // Dedicated cache for images with optimized settings
         'images' => [
-            'driver' => 'redis',
+            'driver' => env('CACHE_STORES_IMAGES_DRIVER', 'redis'),
             'connection' => 'cache',
             'prefix' => 'images_cache',
         ],
