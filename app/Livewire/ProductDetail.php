@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Product;
 use App\Models\Wishlist;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -16,9 +15,25 @@ class ProductDetail extends Component
 
     public bool $showWishlistLoginPrompt = false;
 
+    private ?bool $wishlistStatus = null;
+
     public function mount(Product $product): void
     {
         $this->product = $product->load(['category', 'bike']);
+        $this->loadWishlistStatus();
+    }
+
+    private function loadWishlistStatus(): void
+    {
+        if (! Auth::check() || ! $this->product) {
+            $this->wishlistStatus = false;
+
+            return;
+        }
+
+        $this->wishlistStatus = Wishlist::where('user_id', Auth::id())
+            ->where('product_id', $this->product->id)
+            ->exists();
     }
 
     public function dismissWishlistPrompt(): void
@@ -28,13 +43,7 @@ class ProductDetail extends Component
 
     public function getIsInWishlistProperty(): bool
     {
-        if (! Auth::check() || ! $this->product) {
-            return false;
-        }
-
-        return Wishlist::where('user_id', Auth::id())
-            ->where('product_id', $this->product->id)
-            ->exists();
+        return $this->wishlistStatus ?? false;
     }
 
     public function toggleWishlist(): void
@@ -55,6 +64,7 @@ class ProductDetail extends Component
 
         if ($existingWishlist) {
             $existingWishlist->delete();
+            $this->wishlistStatus = false;
             $this->dispatch('flash', [
                 'type' => 'info',
                 'message' => 'Product removed from wishlist.',
@@ -64,6 +74,7 @@ class ProductDetail extends Component
                 'user_id' => Auth::id(),
                 'product_id' => $this->product->id,
             ]);
+            $this->wishlistStatus = true;
             $this->dispatch('flash', [
                 'type' => 'success',
                 'message' => 'Product added to wishlist!',
@@ -137,8 +148,6 @@ class ProductDetail extends Component
         if (! $this->product) {
             return;
         }
-
-        Log::info('ProductDetail::addToCart called', ['productId' => $this->product->id, 'productName' => $this->product->name]);
 
         $this->dispatch('addToCart', [
             'productId' => $this->product->id,

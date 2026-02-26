@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Cache;
 
 class Category extends Model
 {
@@ -25,15 +25,15 @@ class Category extends Model
     protected static function booted(): void
     {
         static::created(function (Category $category) {
-            Cache::forget('categories_active');
+            CacheService::clearCategoryCache();
         });
 
         static::updated(function (Category $category) {
-            Cache::forget('categories_active');
+            CacheService::clearCategoryCache();
         });
 
         static::deleted(function (Category $category) {
-            Cache::forget('categories_active');
+            CacheService::clearCategoryCache();
         });
     }
 

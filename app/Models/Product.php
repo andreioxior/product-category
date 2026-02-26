@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Cache;
 use Laravel\Scout\Searchable;
 
 class Product extends Model
@@ -53,23 +53,16 @@ class Product extends Model
 
     public function clearProductCache(): void
     {
-        Cache::forget('total_products_count');
-
-        Cache::forget('bike_manufacturers');
-
-        if ($this->bike) {
-            Cache::forget("bike_models_{$this->bike->manufacturer}");
-            Cache::forget("bike_years_{$this->bike->manufacturer}_{$this->bike->model}");
-        }
+        CacheService::clearProductCache(
+            $this->bike_id,
+            $this->bike?->manufacturer ?? null,
+            $this->bike?->model ?? null
+        );
     }
 
     public function clearCategoryCache(): void
     {
-        Cache::forget('categories_active');
-
-        if ($this->category_id) {
-            Cache::forget("category_products_{$this->category_id}");
-        }
+        CacheService::clearCategoryCache($this->category_id);
     }
 
     public function category(): BelongsTo

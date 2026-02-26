@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'unsplash' => [
+        'access_key' => env('UNSPLASH_ACCESS_KEY'),
+    ],
+
+    'pexels' => [
+        'api_key' => env('PEXELS_API_KEY'),
+    ],
+
+    'pixabay' => [
+        'api_key' => env('PIXABAY_API_KEY'),
+    ],
+
 ];

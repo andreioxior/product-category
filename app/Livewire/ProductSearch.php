@@ -25,15 +25,15 @@ class ProductSearch extends Component
         }
     }
 
-    public function selectSuggestion(string $suggestion)
+    public function selectSuggestion(string $suggestion): void
     {
         $this->search = $suggestion;
         $this->showSuggestions = false;
 
-        return $this->redirect(route('products', ['search' => $suggestion]));
+        $this->redirect(route('products', ['search' => $suggestion]));
     }
 
-    public function performSearch()
+    public function performSearch(): void
     {
         if (empty($this->search)) {
             return;
@@ -41,7 +41,7 @@ class ProductSearch extends Component
 
         $this->showSuggestions = false;
 
-        return $this->redirect(route('products', ['search' => $this->search]));
+        $this->redirect(route('products', ['search' => $this->search]));
     }
 
     public function closeSuggestions(): void
