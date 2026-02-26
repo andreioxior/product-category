@@ -1,12 +1,14 @@
 @php
-    $fallbackUrl = 'https://picsum.photos/seed/' . urlencode($alt ?? 'product') . '/300/300.jpg';
+    use App\Services\ImageUrlService;
+    
     $localImage = asset('images/products/' . basename($src ?? ''));
     $placeholderUrl = asset('images/product-placeholder.svg');
+    $useLocalFile = $src && ImageUrlService::localImageExists($src);
 @endphp
 
 @if($src)
     <picture>
-        @if(file_exists(public_path('images/products/' . basename($src))))
+        @if($useLocalFile)
             <source srcset="{{ $localImage }}" type="image/webp">
             <img 
                 src="{{ $localImage }}" 
@@ -19,9 +21,8 @@
                 onerror="this.onerror=null; this.src='{{ $placeholderUrl }}'; this.classList.add('bg-zinc-100');"
             />
         @else
-            <source srcset="{{ $fallbackUrl }}" type="image/webp">
             <img 
-                src="{{ $fallbackUrl }}" 
+                src="{{ $src }}" 
                 alt="{{ $alt ?? 'Product image' }}"
                 width="{{ $width ?? '300' }}"
                 height="{{ $height ?? '300' }}"

@@ -3,17 +3,19 @@
 namespace App\Services;
 
 use App\Models\Product;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class ImageUrlService
 {
-    /**
-     * Get optimized image URL for a product with smart image support.
-     */
     public static function getProductImageUrl(Product $product, ?int $width = null, ?int $height = null): string
     {
-        // Try smart image first (non-blocking for performance)
+        $originalImage = $product->image ?? null;
+
+        if ($originalImage && self::isValidImageUrl($originalImage)) {
+            return $originalImage;
+        }
+
         try {
             $smartImageService = app(SmartImageService::class);
             $smartUrl = $smartImageService->getSmartImageUrl($product);
@@ -22,33 +24,24 @@ class ImageUrlService
                 return $smartUrl;
             }
         } catch (\Exception $e) {
-            // Log smart image failure but don't block page load
-            \Log::warning('Smart image service failed', [
+            Log::warning('Smart image service failed', [
                 'product_id' => $product->id,
                 'error' => $e->getMessage(),
             ]);
         }
 
-        // Fallback to current image system
-        $imagePath = $product->image_url ?? null;
-
-        if (! $imagePath) {
-            // Generate a placeholder URL with product ID
-            return self::getPlaceholderUrl($product->name ?? 'product', $width, $height);
-        }
-
-        // Check if image is a local file
-        if (self::isLocalImage($imagePath)) {
-            return self::getLocalImageUrl($imagePath, $width, $height);
-        }
-
-        // For remote images, return as-is or optimize
-        return $imagePath;
+        return self::getPlaceholderUrl($product->name ?? 'product', $width, $height);
     }
 
-    /**
-     * Get placeholder image URL.
-     */
+    private static function isValidImageUrl(?string $url): bool
+    {
+        if (! $url) {
+            return false;
+        }
+
+        return str_starts_with($url, 'http://') || str_starts_with($url, 'https://');
+    }
+
     public static function getPlaceholderUrl(string $seed = 'product', ?int $width = null, ?int $height = null): string
     {
         $size = $width && $height ? "{$width}x{$height}" : '300x300';
@@ -56,44 +49,16 @@ class ImageUrlService
         return 'https://picsum.photos/seed/'.urlencode($seed)."/{$size}.jpg";
     }
 
-    /**
-     * Check if image path is a local file.
-     */
-    private static function isLocalImage(string $path): bool
+    public static function localImageExists(string $src): bool
     {
-        return ! str_starts_with($path, 'http') &&
-               ! str_starts_with($path, '//') &&
-               ! str_contains($path, 'picsum.photos');
-    }
-
-    /**
-     * Get local image URL with proper path checking.
-     */
-    private static function getLocalImageUrl(string $path, ?int $width = null, ?int $height = null): string
-    {
-        // Remove any leading slashes to ensure consistent path
-        $cleanPath = ltrim($path, '/');
-
-        // Check if file exists in products directory
-        if (Storage::disk('public')->exists('products/'.basename($cleanPath))) {
-            $url = asset('storage/products/'.basename($cleanPath));
-
-            // Add query parameters for sizing
-            if ($width || $height) {
-                $params = [];
-                if ($width) {
-                    $params[] = "w={$width}";
-                }
-                if ($height) {
-                    $params[] = "h={$height}";
-                }
-                $url .= '?'.implode('&', $params);
-            }
-
-            return $url;
+        if (! $src) {
+            return false;
         }
 
-        // Fall back to placeholder
-        return self::getPlaceholderUrl('product', $width, $height);
+        $cacheKey = 'local_image_exists_'.md5($src);
+
+        return Cache::remember($cacheKey, now()->addHours(24), function () use ($src) {
+            return file_exists(public_path('images/products/'.basename($src)));
+        });
     }
 }

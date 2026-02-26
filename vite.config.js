@@ -7,15 +7,9 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
     build: {
         rollupOptions: {
-            output: {
-                manualChunks: {
-                    'admin': ['./resources/js/admin.js'],
-                    'search': ['./resources/js/search.js'],
-                    'vendor': ['axios', 'alpinejs'],
-                }
-            }
+            output: {}
         },
-        chunkSizeWarningLimit: 1000,
+        chunkSizeWarningLimit: 500,
         cssCodeSplit: true,
     },
     plugins: [
@@ -32,6 +26,6 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        include: ['axios', 'alpinejs'],
+        include: ['axios'],
     },
 });

@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -87,35 +88,39 @@ class Checkout extends Component
         }
 
         try {
-            $order = Order::create([
-                'user_id' => Auth::id(),
-                'customer_name' => $this->customerName,
-                'customer_email' => $this->customerEmail,
-                'customer_phone' => $this->customerPhone,
-                'customer_address' => $this->customerAddress,
-                'customer_city' => $this->customerCity,
-                'customer_state' => $this->customerState,
-                'customer_zip' => $this->customerZip,
-                'customer_country' => $this->customerCountry,
-                'payment_method' => $this->paymentMethod,
-                'payment_status' => 'paid',
-                'order_status' => 'pending',
-                'subtotal' => $this->subtotal,
-                'shipping_cost' => $this->shipping,
-                'total' => $this->total,
-                'notes' => $this->notes,
-            ]);
-
-            foreach ($this->cart as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['id'],
-                    'product_name' => $item['name'],
-                    'product_price' => $item['price'],
-                    'quantity' => $item['quantity'],
-                    'subtotal' => $item['price'] * $item['quantity'],
+            $order = DB::transaction(function () {
+                $order = Order::create([
+                    'user_id' => Auth::id(),
+                    'customer_name' => $this->customerName,
+                    'customer_email' => $this->customerEmail,
+                    'customer_phone' => $this->customerPhone,
+                    'customer_address' => $this->customerAddress,
+                    'customer_city' => $this->customerCity,
+                    'customer_state' => $this->customerState,
+                    'customer_zip' => $this->customerZip,
+                    'customer_country' => $this->customerCountry,
+                    'payment_method' => $this->paymentMethod,
+                    'payment_status' => 'paid',
+                    'order_status' => 'pending',
+                    'subtotal' => $this->subtotal,
+                    'shipping_cost' => $this->shipping,
+                    'total' => $this->total,
+                    'notes' => $this->notes,
                 ]);
-            }
+
+                foreach ($this->cart as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $item['id'],
+                        'product_name' => $item['name'],
+                        'product_price' => $item['price'],
+                        'quantity' => $item['quantity'],
+                        'subtotal' => $item['price'] * $item['quantity'],
+                    ]);
+                }
+
+                return $order;
+            });
 
             session()->forget('cart');
 

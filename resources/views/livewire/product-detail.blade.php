@@ -1,4 +1,19 @@
 <div>
+    @push('meta')
+        @if ($product)
+            <meta name="description" content="{{ $metaDescription }}" />
+            <meta name="keywords" content="{{ implode(', ', $metaKeywords) }}" />
+            <meta property="og:title" content="{{ $title }}" />
+            <meta property="og:description" content="{{ $metaDescription }}" />
+            <meta property="og:image" content="{{ $product->image }}" />
+            <meta property="og:type" content="product" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content="{{ $title }}" />
+            <meta name="twitter:description" content="{{ $metaDescription }}" />
+            <meta name="twitter:image" content="{{ $product->image }}" />
+        @endif
+    @endpush
+    
     <div>
         <livewire:cart />
 
@@ -45,16 +60,48 @@
                                 </div>
 
                                 <div class="space-y-4">
-                                    <flux:button
-                                        variant="primary"
-                                        class="w-full"
+                                    <button
+                                        type="button"
                                         wire:click="addToCart"
+                                        class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-950 dark:bg-zinc-100 px-4 py-2 text-sm font-medium text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:focus:ring-zinc-400 transition-colors"
                                     >
                                         Add to Cart
-                                    </flux:button>
-                                    <flux:button variant="subtle" class="w-full">
-                                        Add to Wishlist
-                                    </flux:button>
+                                    </button>
+<button
+                                        type="button"
+                                        wire:click="toggleWishlist"
+                                        wire:target="toggleWishlist"
+                                        class="w-full flex items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:focus:ring-zinc-400 transition-colors"
+                                    >
+                                        <span wire:loading.remove wire:target="toggleWishlist" class="flex items-center gap-2">
+                                            @if($isInWishlist)
+                                                <svg class="w-5 h-5 text-red-500 shrink-0" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                                <span>Remove from Wishlist</span>
+                                            @else
+                                                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                </svg>
+                                                <span>Add to Wishlist</span>
+                                            @endif
+                                        </span>
+                                        <span wire:loading wire:target="toggleWishlist" class="flex items-center gap-2">
+                                            <svg class="animate-spin w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Processing...</span>
+                                        </span>
+                                    </button>
+                                    @if($showWishlistLoginPrompt)
+                                        <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-800 dark:text-amber-200 text-center">
+                                            Please <a href="{{ route('login') }}" class="underline font-medium hover:text-amber-600 dark:hover:text-amber-400">log in</a> to add items to your wishlist.
+                                            <button type="button" wire:click="dismissWishlistPrompt" class="block w-full mt-1 text-xs underline opacity-70 hover:opacity-100">
+                                                Dismiss
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 

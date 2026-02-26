@@ -20,21 +20,20 @@ class ProductSearch extends Component
     {
         $this->showSuggestions = strlen($this->search) >= 2;
 
-        // Debug logging
-        if (strlen($this->search) >= 2) {
+        if (app()->isLocal() && strlen($this->search) >= 2) {
             Log::info('ProductSearch: Searching for', ['query' => $this->search]);
         }
     }
 
-    public function selectSuggestion(string $suggestion)
+    public function selectSuggestion(string $suggestion): void
     {
         $this->search = $suggestion;
         $this->showSuggestions = false;
 
-        return $this->redirect(route('products', ['search' => $suggestion]));
+        $this->redirect(route('products', ['search' => $suggestion]));
     }
 
-    public function performSearch()
+    public function performSearch(): void
     {
         if (empty($this->search)) {
             return;
@@ -42,7 +41,7 @@ class ProductSearch extends Component
 
         $this->showSuggestions = false;
 
-        return $this->redirect(route('products', ['search' => $this->search]));
+        $this->redirect(route('products', ['search' => $this->search]));
     }
 
     public function closeSuggestions(): void
@@ -56,16 +55,21 @@ class ProductSearch extends Component
             return [];
         }
 
-        try {
-            Log::info('ProductSearch: Searching for "'.$this->search.'"');
+        $debug = app()->isLocal();
 
-            // Test basic search first
+        try {
+            if ($debug) {
+                Log::info('ProductSearch: Searching for "'.$this->search.'"');
+            }
+
             $results = Product::search($this->search)
                 ->where('is_active', true)
                 ->take($this->maxSuggestions)
                 ->get();
 
-            Log::info('ProductSearch: Found '.$results->count().' results');
+            if ($debug) {
+                Log::info('ProductSearch: Found '.$results->count().' results');
+            }
 
             $suggestions = [];
             foreach ($results as $product) {
@@ -80,11 +84,15 @@ class ProductSearch extends Component
                 ];
             }
 
-            Log::info('ProductSearch: Returning '.count($suggestions).' suggestions');
+            if ($debug) {
+                Log::info('ProductSearch: Returning '.count($suggestions).' suggestions');
+            }
 
             return $suggestions;
         } catch (\Exception $e) {
-            Log::error('ProductSearch suggestions error: '.$e->getMessage());
+            if ($debug) {
+                Log::error('ProductSearch suggestions error: '.$e->getMessage());
+            }
 
             return [];
         }

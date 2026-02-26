@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,6 +21,21 @@ class Category extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Category $category) {
+            CacheService::clearCategoryCache();
+        });
+
+        static::updated(function (Category $category) {
+            CacheService::clearCategoryCache();
+        });
+
+        static::deleted(function (Category $category) {
+            CacheService::clearCategoryCache();
+        });
+    }
 
     public function products(): HasMany
     {

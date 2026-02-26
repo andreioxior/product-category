@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\CacheService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
@@ -27,7 +28,6 @@ class ProductListingCached extends Component
 
     public bool $loading = false;
 
-    // Bike hierarchy properties
     #[Url]
     public ?string $selectedManufacturer = null;
 
@@ -51,12 +51,42 @@ class ProductListingCached extends Component
         $this->resetPage();
     }
 
+    public function getPageTitleProperty(): string
+    {
+        $parts = [];
+
+        if ($this->search) {
+            $parts[] = 'Search: '.$this->search;
+        }
+
+        if ($this->selectedCategory) {
+            $parts[] = $this->selectedCategory->name;
+        }
+
+        if ($this->selectedManufacturer) {
+            $parts[] = $this->selectedManufacturer;
+        }
+
+        if ($this->selectedModel) {
+            $parts[] = $this->selectedModel;
+        }
+
+        if ($this->selectedYear) {
+            $parts[] = $this->selectedYear;
+        }
+
+        if (empty($parts)) {
+            return config('app.name', 'Bike Shop').' - Professional Bike Parts & Accessories';
+        }
+
+        return implode(' | ', $parts).' | '.config('app.name', 'Bike Shop');
+    }
+
     public function getFilteredProductsProperty(): LengthAwarePaginator
     {
         $this->loading = true;
 
-        // Generate cache key based on all filters (consistent for search and bike filters)
-        $cacheKey = 'products_page_'.md5(serialize([
+        $filterData = [
             'search' => $this->search,
             'category' => $this->selectedCategoryId,
             'sort' => $this->sortField,
@@ -64,15 +94,14 @@ class ProductListingCached extends Component
             'model' => $this->selectedModel,
             'year' => $this->selectedYear,
             'page' => $this->getPage(),
-        ]));
+        ];
+        $cacheKey = 'products_page_'.md5(json_encode($filterData));
 
-        // Cache products list for 30 minutes
         $result = Cache::store('products')->remember($cacheKey, now()->addMinutes(30), function () {
             $query = Product::query()
-                ->with(['category'])
+                ->with(['category', 'bike'])
                 ->where('is_active', true);
 
-            // Apply search filter using SQL with bike relationship (case-insensitive)
             if ($this->search) {
                 $query->where(function ($q) {
                     $q->where('products.name', 'ilike', '%'.$this->search.'%')
@@ -89,12 +118,10 @@ class ProductListingCached extends Component
                 });
             }
 
-            // Apply category filter
             if ($this->selectedCategoryId) {
                 $query->where('category_id', $this->selectedCategoryId);
             }
 
-            // Apply sorting
             match ($this->sortField) {
                 'name_asc' => $query->orderBy('name'),
                 'name_desc' => $query->orderByDesc('name'),
@@ -112,11 +139,9 @@ class ProductListingCached extends Component
         return $result;
     }
 
-    public function getCategoriesProperty()
+    public function getCategoriesProperty(): \Illuminate\Database\Eloquent\Collection
     {
-        return Cache::remember('categories_active', now()->addHours(6), function () {
-            return Category::where('is_active', true)->orderBy('name')->get();
-        });
+        return CacheService::categories();
     }
 
     public function getSelectedCategoryProperty(): ?Category
@@ -130,66 +155,30 @@ class ProductListingCached extends Component
 
     public function getTotalProductsCountProperty(): int
     {
-        return Cache::remember('total_products_count', now()->addHour(), function () {
-            return Product::where('is_active', true)->count();
-        });
+        return CacheService::totalProductsCount();
     }
 
-    // Bike hierarchy properties
-    public function getAvailableBikeManufacturersProperty()
+    public function getAvailableBikeManufacturersProperty(): array
     {
-        return Cache::remember('bike_manufacturers', now()->addHours(12), function () {
-            return Product::whereHas('bike')
-                ->with('bike')
-                ->get()
-                ->pluck('bike.manufacturer')
-                ->unique()
-                ->sort()
-                ->values()
-                ->toArray();
-        });
+        return CacheService::bikeManufacturers();
     }
 
-    public function getAvailableBikeModelsProperty()
+    public function getAvailableBikeModelsProperty(): array
     {
         if (! $this->selectedManufacturer) {
             return [];
         }
 
-        return Cache::remember("bike_models_{$this->selectedManufacturer}", now()->addHours(6), function () {
-            return Product::whereHas('bike', function ($query) {
-                $query->where('manufacturer', $this->selectedManufacturer);
-            })
-                ->with('bike')
-                ->get()
-                ->pluck('bike.model')
-                ->unique()
-                ->sort()
-                ->values()
-                ->toArray();
-        });
+        return CacheService::bikeModels($this->selectedManufacturer);
     }
 
-    public function getAvailableBikeYearsProperty()
+    public function getAvailableBikeYearsProperty(): array
     {
         if (! $this->selectedManufacturer || ! $this->selectedModel) {
             return [];
         }
 
-        return Cache::remember("bike_years_{$this->selectedManufacturer}_{$this->selectedModel}", now()->addHours(3), function () {
-            return Product::whereHas('bike', function ($query) {
-                $query->where('manufacturer', $this->selectedManufacturer)
-                    ->where('model', $this->selectedModel);
-            })
-                ->with('bike')
-                ->get()
-                ->pluck('bike.year')
-                ->unique()
-                ->sort()
-                ->reverse()
-                ->values()
-                ->toArray();
-        });
+        return CacheService::bikeYears($this->selectedManufacturer, $this->selectedModel);
     }
 
     public function updatedSearch(): void
@@ -264,13 +253,23 @@ class ProductListingCached extends Component
 
     public function addToCart(int $productId): void
     {
-        // Cart functionality would go here
-        $this->dispatch('cart-item-added', productId: $productId);
+        $product = Product::find($productId);
+        if (! $product) {
+            return;
+        }
+
+        $this->dispatch('addToCart', [
+            'productId' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price,
+            'image' => $product->image,
+        ]);
     }
 
     public function render(): \Illuminate\View\View
     {
         return view('livewire.product-listing-cached', [
+            'pageTitle' => $this->pageTitle,
             'products' => $this->filteredProducts,
             'categories' => $this->categories,
             'selectedCategory' => $this->selectedCategory,

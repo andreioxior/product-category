@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -26,8 +25,6 @@ class Cart extends Component
         $name = $data['name'];
         $price = $data['price'];
         $image = $data['image'];
-
-        Log::info('addToCart called', ['productId' => $productId, 'name' => $name, 'price' => $price, 'image' => $image]);
 
         $cart = session()->get('cart', []);
 

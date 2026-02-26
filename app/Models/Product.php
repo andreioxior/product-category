@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,12 +28,42 @@ class Product extends Model
         'sku',
         'stock_quantity',
         'is_active',
-        'image_local_path',
-        'image_cdn_url',
-        'image_metadata',
-        'image_hosted_locally',
-        'image_synced_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Product $product) {
+            $product->clearProductCache();
+            $product->clearCategoryCache();
+            $product->searchable();
+        });
+
+        static::updated(function (Product $product) {
+            $product->clearProductCache();
+            $product->clearCategoryCache();
+            $product->searchable();
+        });
+
+        static::deleted(function (Product $product) {
+            $product->clearProductCache();
+            $product->clearCategoryCache();
+            $product->unsearchable();
+        });
+    }
+
+    public function clearProductCache(): void
+    {
+        CacheService::clearProductCache(
+            $this->bike_id,
+            $this->bike?->manufacturer ?? null,
+            $this->bike?->model ?? null
+        );
+    }
+
+    public function clearCategoryCache(): void
+    {
+        CacheService::clearCategoryCache($this->category_id);
+    }
 
     public function category(): BelongsTo
     {
@@ -72,7 +103,6 @@ class Product extends Model
      */
     public function toSearchableArray(): array
     {
-        // Only include active products
         if (! $this->is_active) {
             return [];
         }
@@ -82,9 +112,9 @@ class Product extends Model
             'name' => $this->name,
             'description' => $this->description,
             'category_name' => $this->category?->name,
-            'manufacturer' => $this->manufacturer,
-            'model' => $this->model,
-            'year' => (string) $this->year,
+            'manufacturer' => $this->bike?->manufacturer,
+            'model' => $this->bike?->model,
+            'year' => (string) $this->bike?->year,
             'type' => $this->type,
             'price' => (float) $this->price,
             'is_active' => $this->is_active,

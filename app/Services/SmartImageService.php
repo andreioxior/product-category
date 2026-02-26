@@ -35,11 +35,12 @@ class SmartImageService
         $type = $product->type ?? 'accessory';
         $query = "motorcycle {$manufacturer} {$model} {$type} professional photography";
 
-        // Try Unsplash first
         $unsplashUrl = 'https://api.unsplash.com/photos/random?query='.urlencode($query).'&count=1&orientation=landscape';
 
         try {
-            $unsplashData = Http::timeout(10)->get($unsplashUrl)->json();
+            $unsplashData = Http::timeout(10)->withHeaders([
+                'Authorization' => 'Client-ID '.config('services.unsplash.access_key'),
+            ])->get($unsplashUrl)->json();
             if (! empty($unsplashData) && isset($unsplashData[0]['urls']['regular'])) {
                 $imageUrl = $unsplashData[0]['urls']['regular'];
 
@@ -49,11 +50,12 @@ class SmartImageService
             Log::debug('Unsplash API error', ['error' => $e->getMessage()]);
         }
 
-        // Try Pexels second
         $pexelsUrl = 'https://api.pexels.com/v1/search?query='.urlencode($query).'&per_page=1&orientation=landscape';
 
         try {
-            $pexelsData = Http::timeout(10)->get($pexelsUrl)->json();
+            $pexelsData = Http::timeout(10)->withHeaders([
+                'Authorization' => config('services.pexels.api_key'),
+            ])->get($pexelsUrl)->json();
             if (! empty($pexelsData['photos']) && isset($pexelsData['photos'][0]['src']['large'])) {
                 $imageUrl = $pexelsData['photos'][0]['src']['large'];
 
@@ -63,8 +65,7 @@ class SmartImageService
             Log::debug('Pexels API error', ['error' => $e->getMessage()]);
         }
 
-        // Try Pixabay third
-        $pixabayUrl = 'https://pixabay.com/api/?key=17543257-e658a0a7-3b3c-4f5c-8a15-c51c3ee84d07&q='.urlencode($query).'&per_page=1&image_type=photo&orientation=horizontal';
+        $pixabayUrl = 'https://pixabay.com/api/?key='.config('services.pixabay.api_key').'&q='.urlencode($query).'&per_page=1&image_type=photo&orientation=horizontal';
 
         try {
             $pixabayData = Http::timeout(10)->get($pixabayUrl)->json();
