@@ -23,7 +23,7 @@ class ProcessSmartImage implements ShouldQueue
     /**
      * The number of seconds to wait before retrying the job.
      */
-    public int $backoff = [5, 10, 30];
+    public array $backoff = [5, 10, 30];
 
     public function __construct(
         public Product $product

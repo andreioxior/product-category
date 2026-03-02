@@ -6,6 +6,7 @@ use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 
 class Product extends Model
@@ -28,7 +29,16 @@ class Product extends Model
         'sku',
         'stock_quantity',
         'is_active',
+        'has_variants',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'has_variants' => 'boolean',
+            'is_active' => 'boolean',
+        ];
+    }
 
     protected static function booted(): void
     {
@@ -73,6 +83,44 @@ class Product extends Model
     public function bike(): BelongsTo
     {
         return $this->belongsTo(Bike::class);
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('display_order');
+    }
+
+    public function activeVariants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)
+            ->where('is_active', true)
+            ->orderBy('display_order');
+    }
+
+    public function getTotalStockAttribute(): int
+    {
+        if ($this->has_variants) {
+            return $this->activeVariants()->sum('stock_quantity');
+        }
+
+        return $this->stock_quantity;
+    }
+
+    public function getIsInStockAttribute(): bool
+    {
+        return $this->total_stock > 0;
+    }
+
+    public function getDisplayPriceAttribute(): float
+    {
+        if ($this->has_variants) {
+            $minPrice = $this->activeVariants()->min('price');
+            if ($minPrice !== null) {
+                return (float) $minPrice;
+            }
+        }
+
+        return (float) ($this->price ?? 0);
     }
 
     public function getManufacturerAttribute(): ?string

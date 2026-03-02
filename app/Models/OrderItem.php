@@ -14,6 +14,8 @@ class OrderItem extends Model
         'product_price',
         'quantity',
         'subtotal',
+        'variant_id',
+        'variant_name',
     ];
 
     protected $casts = [
@@ -29,5 +31,10 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
 }

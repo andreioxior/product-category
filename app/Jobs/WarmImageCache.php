@@ -17,7 +17,7 @@ class WarmImageCache implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $backoff = [5, 10, 30];
+    public array $backoff = [5, 10, 30];
 
     public function handle(SmartImageService $smartImageService): void
     {

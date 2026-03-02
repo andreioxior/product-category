@@ -25,18 +25,26 @@ class Cart extends Component
         $name = $data['name'];
         $price = $data['price'];
         $image = $data['image'];
+        $variantId = $data['variantId'] ?? null;
+        $variantName = $data['variantName'] ?? null;
+        $sku = $data['sku'] ?? null;
+
+        $cartKey = $variantId ? "{$productId}-{$variantId}" : (string) $productId;
 
         $cart = session()->get('cart', []);
 
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity']++;
+        if (isset($cart[$cartKey])) {
+            $cart[$cartKey]['quantity']++;
         } else {
-            $cart[$productId] = [
+            $cart[$cartKey] = [
                 'id' => $productId,
+                'variantId' => $variantId,
                 'name' => $name,
                 'price' => (float) $price,
                 'image' => $image,
                 'quantity' => 1,
+                'variantName' => $variantName,
+                'sku' => $sku,
             ];
         }
 
@@ -45,22 +53,22 @@ class Cart extends Component
         $this->dispatch('cart-updated');
     }
 
-    public function removeFromCart($productId): void
+    public function removeFromCart($cartKey): void
     {
         $cart = session()->get('cart', []);
-        unset($cart[$productId]);
+        unset($cart[$cartKey]);
         session()->put('cart', $cart);
         $this->cart = $cart;
         $this->dispatch('cart-updated');
     }
 
-    public function updateQuantity($productId, $quantity): void
+    public function updateQuantity($cartKey, $quantity): void
     {
         $cart = session()->get('cart', []);
 
-        if (isset($cart[$productId])) {
+        if (isset($cart[$cartKey])) {
             $newQuantity = max(1, (int) $quantity);
-            $cart[$productId]['quantity'] = $newQuantity;
+            $cart[$cartKey]['quantity'] = $newQuantity;
             session()->put('cart', $cart);
             $this->cart = $cart;
         }

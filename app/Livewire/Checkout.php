@@ -116,6 +116,8 @@ class Checkout extends Component
                         'product_price' => $item['price'],
                         'quantity' => $item['quantity'],
                         'subtotal' => $item['price'] * $item['quantity'],
+                        'variant_id' => $item['variantId'] ?? null,
+                        'variant_name' => $item['variantName'] ?? null,
                     ]);
                 }
 

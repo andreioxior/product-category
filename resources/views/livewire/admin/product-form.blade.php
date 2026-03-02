@@ -245,6 +245,7 @@
                                 step="0.01"
                                 min="0"
                                 class="pl-8"
+                                :disabled="$has_variants"
                             ></flux:input>
                         </div>
                         @error('price')
@@ -260,11 +261,105 @@
                             type="number"
                             min="0"
                             placeholder="Stock quantity"
+                            :disabled="$has_variants"
                         ></flux:input>
                         @error('stock_quantity')
                             <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
                         @enderror
                     </div>
+                </div>
+
+                <!-- Variants Section -->
+                <div class="border-t border-zinc-200 dark:border-zinc-700 pt-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <flux:checkbox id="has_variants" wire:model="has_variants" />
+                        <flux:label for="has_variants">This product has variants (colors, sizes, etc.)</flux:label>
+                    </div>
+
+                    @if($has_variants)
+                        <div class="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <flux:heading level="4">Product Variants</flux:heading>
+                                <div class="flex items-center gap-2">
+                                    <flux:label for="variant_type" class="text-sm">Type:</flux:label>
+                                    <flux:select id="variant_type" wire:model="variant_type" class="w-32">
+                                        <option value="color">Color</option>
+                                        <option value="size">Size</option>
+                                    </flux:select>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                @foreach($variants as $index => $variant)
+                                    <div class="bg-white dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-700 p-4 space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <flux:heading level="5">Variant {{ $index + 1 }}</flux:heading>
+                                            @if(count($variants) > 1)
+                                                <flux:button wire:click="removeVariant({{ $index }})" variant="ghost" size="sm" class="text-red-600">
+                                                    Remove
+                                                </flux:button>
+                                            @endif
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                                            <div class="space-y-1">
+                                                <flux:label>Name</flux:label>
+                                                <flux:input
+                                                    wire:model="variants.{{ $index }}.name"
+                                                    type="text"
+                                                    placeholder="{{ $variant_type === 'color' ? 'e.g., Red, Green' : 'e.g., 20cm, 30cm' }}"
+                                                ></flux:input>
+                                                @error("variants.{$index}.name")
+                                                    <flux:text class="text-xs text-red-600">{{ $message }}</flux:text>
+                                                @enderror
+                                            </div>
+
+                                            <div class="space-y-1">
+                                                <flux:label>Price</flux:label>
+                                                <div class="relative">
+                                                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">$</span>
+                                                    <flux:input
+                                                        wire:model="variants.{{ $index }}.price"
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0"
+                                                        class="pl-6"
+                                                    ></flux:input>
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-1">
+                                                <flux:label>SKU Suffix</flux:label>
+                                                <flux:input
+                                                    wire:model="variants.{{ $index }}.sku_suffix"
+                                                    type="text"
+                                                    placeholder="-RED, -20CM"
+                                                ></flux:input>
+                                            </div>
+
+                                            <div class="space-y-1">
+                                                <flux:label>Stock</flux:label>
+                                                <flux:input
+                                                    wire:model="variants.{{ $index }}.stock_quantity"
+                                                    type="number"
+                                                    min="0"
+                                                ></flux:input>
+                                            </div>
+
+                                            <div class="flex items-center gap-2 pt-6">
+                                                <flux:checkbox wire:model="variants.{{ $index }}.is_active" />
+                                                <flux:label>Active</flux:label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <flux:button wire:click="addVariant" variant="outline" size="sm">
+                                + Add Variant
+                            </flux:button>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="flex items-center gap-3">

@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Bike;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -40,17 +41,24 @@ class ProductForm extends Component
 
     public ?int $bike_year = null;
 
-    #[Validate('required|numeric|min:0')]
-    public float $price = 0;
+    #[Validate('nullable|numeric|min:0')]
+    public ?float $price = null;
 
     #[Validate('nullable|string|max:255')]
     public ?string $sku = null;
 
-    #[Validate('required|integer|min:0')]
-    public int $stock_quantity = 0;
+    #[Validate('nullable|integer|min:0')]
+    public ?int $stock_quantity = null;
 
     #[Validate('boolean')]
     public bool $is_active = true;
+
+    #[Validate('boolean')]
+    public bool $has_variants = false;
+
+    public string $variant_type = 'color';
+
+    public array $variants = [];
 
     public bool $isEditing = false;
 
@@ -72,10 +80,7 @@ class ProductForm extends Component
 
     public function mount(?Product $product = null): void
     {
-        // Set default year to current year
         $this->bike_year = (int) date('Y');
-
-        // Initialize collections
         $this->availableBikes = Bike::active()->get();
         $this->availableManufacturers = Bike::active()->distinct()->orderBy('manufacturer')->pluck('manufacturer');
         $this->availableModels = collect([]);
@@ -89,10 +94,11 @@ class ProductForm extends Component
             $this->image = $product->image;
             $this->type = $product->type;
             $this->manufacturer = $product->manufacturer;
-            $this->price = (float) $product->price;
+            $this->price = $product->price ? (float) $product->price : null;
             $this->sku = $product->sku;
             $this->stock_quantity = $product->stock_quantity;
             $this->is_active = $product->is_active;
+            $this->has_variants = $product->has_variants;
             $this->bike_id = $product->bike_id ? (int) $product->bike_id : null;
 
             if ($product->bike) {
@@ -101,7 +107,55 @@ class ProductForm extends Component
                 $this->bike_year = (int) $product->bike->year;
             }
 
+            if ($product->has_variants) {
+                $this->loadVariants();
+            } else {
+                $this->addVariant();
+            }
+
             $this->isEditing = true;
+        } else {
+            $this->addVariant();
+        }
+    }
+
+    protected function loadVariants(): void
+    {
+        $this->variants = $this->product->variants()->get()->map(function ($variant) {
+            return [
+                'id' => $variant->id,
+                'name' => $variant->name,
+                'type' => $variant->type,
+                'price' => $variant->price ? (float) $variant->price : null,
+                'sku_suffix' => $variant->sku_suffix,
+                'stock_quantity' => $variant->stock_quantity,
+                'is_active' => $variant->is_active,
+            ];
+        })->toArray();
+
+        if (empty($this->variants)) {
+            $this->addVariant();
+        }
+    }
+
+    public function addVariant(): void
+    {
+        $this->variants[] = [
+            'id' => null,
+            'name' => '',
+            'type' => $this->variant_type,
+            'price' => $this->price ?? 0,
+            'sku_suffix' => '',
+            'stock_quantity' => $this->stock_quantity ?? 0,
+            'is_active' => true,
+        ];
+    }
+
+    public function removeVariant(int $index): void
+    {
+        if (isset($this->variants[$index])) {
+            unset($this->variants[$index]);
+            $this->variants = array_values($this->variants);
         }
     }
 
@@ -110,7 +164,6 @@ class ProductForm extends Component
         $this->validate();
 
         if ($this->createNewBike === '1') {
-            // Create new bike with active status
             $bike = Bike::firstOrCreate([
                 'manufacturer' => $this->bike_manufacturer,
                 'model' => $this->bike_model,
@@ -119,17 +172,27 @@ class ProductForm extends Component
                 'is_active' => true,
             ]);
             $this->bike_id = $bike->id;
-
-            // Update hidden manufacturer field for backward compatibility
             $this->manufacturer = $bike->manufacturer;
         } else {
-            // Set manufacturer from selected bike for backward compatibility
             $bike = Bike::find((int) $this->bike_id);
             $this->manufacturer = $bike?->manufacturer;
         }
 
         if (! $this->bike_id) {
             throw new \Exception('Bike selection is required.');
+        }
+
+        $productPrice = $this->price;
+        $stockQuantity = $this->stock_quantity;
+
+        if ($this->has_variants && ! empty($this->variants)) {
+            $firstVariantWithPrice = collect($this->variants)
+                ->filter(fn ($v) => ! empty($v['name']) && isset($v['price']))
+                ->first();
+            if ($firstVariantWithPrice) {
+                $productPrice = $firstVariantWithPrice['price'];
+                $stockQuantity = $firstVariantWithPrice['stock_quantity'] ?? 0;
+            }
         }
 
         $data = [
@@ -139,20 +202,74 @@ class ProductForm extends Component
             'description' => $this->description,
             'image' => $this->image,
             'type' => $this->type,
-            'price' => $this->price,
+            'price' => $productPrice,
             'sku' => $this->sku,
-            'stock_quantity' => $this->stock_quantity,
+            'stock_quantity' => $stockQuantity,
             'is_active' => $this->is_active,
-            'manufacturer' => $this->manufacturer, // Hidden field for compatibility
+            'has_variants' => $this->has_variants,
+            'manufacturer' => $this->manufacturer,
         ];
 
         if ($this->product) {
             $this->product->update($data);
+            $product = $this->product;
         } else {
-            Product::create($data);
+            $product = Product::create($data);
+        }
+
+        if ($this->has_variants) {
+            $this->saveVariants($product);
+        } else {
+            $product->variants()->delete();
         }
 
         $this->redirect(route('admin.products'), navigate: true);
+    }
+
+    protected function saveVariants(Product $product): void
+    {
+        $existingIds = $product->variants()->pluck('id')->toArray();
+        $newIds = [];
+
+        foreach ($this->variants as $index => $variantData) {
+            if (empty($variantData['name'])) {
+                continue;
+            }
+
+            $variantData = array_merge($variantData, [
+                'product_id' => $product->id,
+                'display_order' => $index,
+                'price' => $variantData['price'] ?? null,
+                'stock_quantity' => $variantData['stock_quantity'] ?? 0,
+            ]);
+
+            if (! empty($variantData['id'])) {
+                $variant = ProductVariant::find($variantData['id']);
+                if ($variant) {
+                    $variant->update($variantData);
+                    $newIds[] = $variant->id;
+                }
+            } else {
+                $variant = ProductVariant::create($variantData);
+                $newIds[] = $variant->id;
+            }
+        }
+
+        $product->variants()->whereNotIn('id', $newIds)->delete();
+    }
+
+    public function updatedHasVariants(bool $value): void
+    {
+        if ($value && empty($this->variants)) {
+            $this->addVariant();
+        }
+    }
+
+    public function updatedVariantType(string $value): void
+    {
+        foreach ($this->variants as &$variant) {
+            $variant['type'] = $value;
+        }
     }
 
     public function updatedCreateNewBike(string $value): void
@@ -244,17 +361,33 @@ class ProductForm extends Component
             'description' => 'nullable|string',
             'image' => 'nullable|url',
             'type' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
             'sku' => 'nullable|string|max:255',
-            'stock_quantity' => 'required|integer|min:0',
             'is_active' => 'boolean',
+            'has_variants' => 'boolean',
+            'variant_type' => 'required|string|in:color,size',
         ];
+
+        if (! $this->has_variants) {
+            $rules['price'] = 'required|numeric|min:0';
+            $rules['stock_quantity'] = 'required|integer|min:0';
+        } else {
+            $rules['price'] = 'nullable|numeric|min:0';
+            $rules['stock_quantity'] = 'nullable|integer|min:0';
+        }
+
+        foreach ($this->variants as $index => $variant) {
+            $rules["variants.{$index}.name"] = 'required|string|max:255';
+            $rules["variants.{$index}.type"] = 'required|string|in:color,size';
+            $rules["variants.{$index}.price"] = 'nullable|numeric|min:0';
+            $rules["variants.{$index}.sku_suffix"] = 'nullable|string|max:50';
+            $rules["variants.{$index}.stock_quantity"] = 'nullable|integer|min:0';
+            $rules["variants.{$index}.is_active"] = 'boolean';
+        }
 
         if ($this->createNewBike === '1') {
             $bikeManufacturer = $this->bike_manufacturer ?? '';
             $rules['bike_manufacturer'] = 'required|string|max:255';
 
-            // Skip unique validation for bike model when editing and keeping the same bike
             if ($this->isEditing && $this->product && $this->product->bike &&
                 $this->product->bike->manufacturer === $bikeManufacturer &&
                 $this->product->bike->model === $this->bike_model) {

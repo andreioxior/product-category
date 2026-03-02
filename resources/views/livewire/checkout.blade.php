@@ -159,6 +159,11 @@
 
                                             <div class="flex-1 min-w-0">
                                                 <p class="font-medium text-sm truncate">{{ $item['name'] }}</p>
+                                                @if(!empty($item['variantName']))
+                                                    <flux:text class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                                        {{ $item['variantName'] }}
+                                                    </flux:text>
+                                                @endif
                                                 <p class="text-sm text-zinc-500 dark:text-zinc-400">Qty: {{ $item['quantity'] }}</p>
                                                 <p class="text-sm font-medium text-green-600 dark:text-green-400">
                                                     ${{ number_format($item['price'] * $item['quantity'], 2) }}
