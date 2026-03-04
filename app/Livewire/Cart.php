@@ -19,15 +19,29 @@ class Cart extends Component
     }
 
     #[On('addToCart')]
-    public function addToCart($data): void
-    {
-        $productId = $data['productId'];
-        $name = $data['name'];
-        $price = $data['price'];
-        $image = $data['image'];
-        $variantId = $data['variantId'] ?? null;
-        $variantName = $data['variantName'] ?? null;
-        $sku = $data['sku'] ?? null;
+    public function addToCart(
+        $productId = null,
+        ?string $name = null,
+        $price = null,
+        ?string $image = null,
+        ?int $variantId = null,
+        ?string $variantName = null,
+        ?string $sku = null
+    ): void {
+        if (is_array($productId)) {
+            $data = $productId;
+            $productId = $data['productId'] ?? null;
+            $name = $data['name'] ?? null;
+            $price = $data['price'] ?? null;
+            $image = $data['image'] ?? null;
+            $variantId = $data['variantId'] ?? null;
+            $variantName = $data['variantName'] ?? null;
+            $sku = $data['sku'] ?? null;
+        }
+
+        if (!$productId || !$name) {
+            return;
+        }
 
         $cartKey = $variantId ? "{$productId}-{$variantId}" : (string) $productId;
 

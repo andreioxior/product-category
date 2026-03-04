@@ -81,7 +81,7 @@ class CacheService
     {
         return Cache::remember('homepage_featured_products', self::CACHE_TTL_30_MINUTES, function () {
             return \App\Models\Product::query()
-                ->with(['category', 'bike'])
+                ->with(['category', 'bike', 'activeVariants'])
                 ->where('is_active', true)
                 ->orderByDesc('created_at')
                 ->limit(8)
@@ -93,7 +93,7 @@ class CacheService
     {
         return Cache::remember('homepage_new_arrivals', self::CACHE_TTL_1_HOUR, function () {
             return \App\Models\Product::query()
-                ->with(['category', 'bike'])
+                ->with(['category', 'bike', 'activeVariants'])
                 ->where('is_active', true)
                 ->orderByDesc('created_at')
                 ->limit(4)
@@ -105,7 +105,7 @@ class CacheService
     {
         return Cache::remember('homepage_promo_products', self::CACHE_TTL_1_HOUR, function () {
             return \App\Models\Product::query()
-                ->with(['category', 'bike'])
+                ->with(['category', 'bike', 'activeVariants'])
                 ->where('is_active', true)
                 ->inRandomOrder()
                 ->limit(4)

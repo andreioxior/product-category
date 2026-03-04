@@ -99,7 +99,7 @@ class ProductListingCached extends Component
 
         $result = Cache::store('products')->remember($cacheKey, now()->addMinutes(30), function () {
             $query = Product::query()
-                ->with(['category', 'bike'])
+                ->with(['category', 'bike', 'activeVariants'])
                 ->where('is_active', true);
 
             if ($this->search) {
@@ -251,19 +251,24 @@ class ProductListingCached extends Component
         $this->resetPage();
     }
 
-    public function addToCart(int $productId): void
+    public function addToCart(int $productId, ?int $variantId = null, ?string $variantName = null, ?float $price = null, ?string $sku = null): void
     {
-        $product = Product::find($productId);
+        $product = Product::with('activeVariants')->find($productId);
         if (! $product) {
             return;
         }
 
-        $this->dispatch('addToCart', [
+        $addToCartData = [
             'productId' => $product->id,
             'name' => $product->name,
-            'price' => $product->price,
+            'price' => $price ?? $product->price,
             'image' => $product->image,
-        ]);
+            'variantId' => $variantId,
+            'variantName' => $variantName,
+            'sku' => $sku,
+        ];
+
+        $this->dispatch('addToCart', $addToCartData);
     }
 
     public function render(): \Illuminate\View\View
