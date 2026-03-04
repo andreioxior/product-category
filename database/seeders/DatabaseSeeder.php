@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -30,6 +31,12 @@ class DatabaseSeeder extends Seeder
         if (Category::count() === 0) {
             $this->call([
                 BikeProductSeeder::class,
+            ]);
+        }
+
+        if (ProductVariant::count() === 0) {
+            $this->call([
+                ProductVariantSeeder::class,
             ]);
         }
     }

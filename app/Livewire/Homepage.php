@@ -35,9 +35,9 @@ class Homepage extends Component
         return CacheService::totalProductsCount();
     }
 
-    public function addToCart(int $productId): void
+    public function addToCart(int $productId, ?int $variantId = null, ?string $variantName = null, ?float $price = null, ?string $sku = null): void
     {
-        $product = Product::find($productId);
+        $product = Product::with('activeVariants')->find($productId);
         if (! $product) {
             return;
         }
@@ -45,8 +45,11 @@ class Homepage extends Component
         $this->dispatch('addToCart', [
             'productId' => $product->id,
             'name' => $product->name,
-            'price' => $product->price,
+            'price' => $price ?? $product->price,
             'image' => $product->image,
+            'variantId' => $variantId,
+            'variantName' => $variantName,
+            'sku' => $sku,
         ]);
     }
 

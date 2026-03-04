@@ -76,6 +76,9 @@
                                 <div class="flex items-start gap-4">
                                     <div class="flex-1">
                                         <p class="font-medium">{{ $item->product_name }}</p>
+                                        @if($item->variant_name)
+                                            <p class="text-sm text-zinc-500 dark:text-zinc-400">Variant: {{ $item->variant_name }}</p>
+                                        @endif
                                         <p class="text-sm text-zinc-500 dark:text-zinc-400">Quantity: {{ $item->quantity }}</p>
                                     </div>
                                     <p class="font-medium text-green-600 dark:text-green-400">

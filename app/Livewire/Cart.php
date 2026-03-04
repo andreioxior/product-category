@@ -19,24 +19,46 @@ class Cart extends Component
     }
 
     #[On('addToCart')]
-    public function addToCart($data): void
-    {
-        $productId = $data['productId'];
-        $name = $data['name'];
-        $price = $data['price'];
-        $image = $data['image'];
+    public function addToCart(
+        $productId = null,
+        ?string $name = null,
+        $price = null,
+        ?string $image = null,
+        ?int $variantId = null,
+        ?string $variantName = null,
+        ?string $sku = null
+    ): void {
+        if (is_array($productId)) {
+            $data = $productId;
+            $productId = $data['productId'] ?? null;
+            $name = $data['name'] ?? null;
+            $price = $data['price'] ?? null;
+            $image = $data['image'] ?? null;
+            $variantId = $data['variantId'] ?? null;
+            $variantName = $data['variantName'] ?? null;
+            $sku = $data['sku'] ?? null;
+        }
+
+        if (!$productId || !$name) {
+            return;
+        }
+
+        $cartKey = $variantId ? "{$productId}-{$variantId}" : (string) $productId;
 
         $cart = session()->get('cart', []);
 
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity']++;
+        if (isset($cart[$cartKey])) {
+            $cart[$cartKey]['quantity']++;
         } else {
-            $cart[$productId] = [
+            $cart[$cartKey] = [
                 'id' => $productId,
+                'variantId' => $variantId,
                 'name' => $name,
                 'price' => (float) $price,
                 'image' => $image,
                 'quantity' => 1,
+                'variantName' => $variantName,
+                'sku' => $sku,
             ];
         }
 
@@ -45,22 +67,22 @@ class Cart extends Component
         $this->dispatch('cart-updated');
     }
 
-    public function removeFromCart($productId): void
+    public function removeFromCart($cartKey): void
     {
         $cart = session()->get('cart', []);
-        unset($cart[$productId]);
+        unset($cart[$cartKey]);
         session()->put('cart', $cart);
         $this->cart = $cart;
         $this->dispatch('cart-updated');
     }
 
-    public function updateQuantity($productId, $quantity): void
+    public function updateQuantity($cartKey, $quantity): void
     {
         $cart = session()->get('cart', []);
 
-        if (isset($cart[$productId])) {
+        if (isset($cart[$cartKey])) {
             $newQuantity = max(1, (int) $quantity);
-            $cart[$productId]['quantity'] = $newQuantity;
+            $cart[$cartKey]['quantity'] = $newQuantity;
             session()->put('cart', $cart);
             $this->cart = $cart;
         }

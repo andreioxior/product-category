@@ -45,7 +45,7 @@
                                 @endif
 
                                 <div class="flex items-center gap-3">
-                                    @if ($product->is_active)
+                                    @if ($isInStock)
                                         <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900 px-3 py-1 text-sm font-medium text-green-900 dark:text-green-100">
                                             In Stock
                                         </span>
@@ -55,7 +55,7 @@
                                         </span>
                                     @endif
                                     <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
-                                        {{ $product->stock_quantity }} available
+                                        {{ $currentStock }} available
                                     </flux:text>
                                 </div>
 
@@ -116,8 +116,30 @@
 
                                 <flux:heading level="1">{{ $product->name }}</flux:heading>
 
+                                @if($product->has_variants && $product->activeVariants->isNotEmpty())
+                                    <div class="space-y-3">
+                                        <flux:text class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                            Select {{ $product->activeVariants->first()?->type === 'color' ? 'Color' : 'Size' }}:
+                                        </flux:text>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach($product->activeVariants as $variant)
+                                                <button
+                                                    type="button"
+                                                    wire:click="selectVariant({{ $variant->id }})"
+                                                    class="inline-flex items-center justify-center rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all
+                                                        {{ $selectedVariant?->id === $variant->id 
+                                                            ? 'border-zinc-950 dark:border-zinc-100 bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-900' 
+                                                            : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600' }}"
+                                                >
+                                                    {{ $variant->name }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
                                 <flux:text size="2xl" class="font-bold text-green-600 dark:text-green-400">
-                                    ${{ number_format($product->price, 2) }}
+                                    ${{ number_format($currentPrice, 2) }}
                                 </flux:text>
 
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
@@ -141,15 +163,15 @@
                                         <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">Type</flux:text>
                                         <p class="font-medium">{{ $product->type }}</p>
                                     </div>
-                                    @if ($product->sku)
+                                    @if ($currentSku)
                                         <div>
                                             <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">SKU</flux:text>
-                                            <p class="font-medium">{{ $product->sku }}</p>
+                                            <p class="font-medium">{{ $currentSku }}</p>
                                         </div>
                                     @endif
                                     <div>
                                         <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">Stock</flux:text>
-                                        <p class="font-medium">{{ $product->stock_quantity }} units</p>
+                                        <p class="font-medium">{{ $currentStock }} units</p>
                                     </div>
                                 </div>
 
@@ -189,16 +211,16 @@
                                             <span class="text-zinc-600 dark:text-zinc-400">Type</span>
                                             <span class="font-medium">{{ $product->type }}</span>
                                         </div>
-                                        @if ($product->sku)
-                                            <div class="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
-                                                <span class="text-zinc-600 dark:text-zinc-400">SKU</span>
-                                                <span class="font-medium">{{ $product->sku }}</span>
-                                            </div>
+                                        @if ($currentSku)
+                                        <div class="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
+                                            <span class="text-zinc-600 dark:text-zinc-400">SKU</span>
+                                            <span class="font-medium">{{ $currentSku ?: 'N/A' }}</span>
+                                        </div>
                                         @endif
                                         <div class="flex items-center justify-between py-2">
                                             <span class="text-zinc-600 dark:text-zinc-400">Availability</span>
-                                            <span class="font-medium {{ $product->is_active && $product->stock_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                                {{ $product->is_active && $product->stock_quantity > 0 ? 'In Stock' : 'Out of Stock' }}
+                                            <span class="font-medium {{ $isInStock ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                                {{ $isInStock ? 'In Stock' : 'Out of Stock' }}
                                             </span>
                                         </div>
                                     </div>

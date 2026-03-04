@@ -46,7 +46,7 @@
 
             @if (count($cart) > 0)
                 <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                    @foreach ($cart as $item)
+                    @foreach ($cart as $cartKey => $item)
                         <div class="flex items-center gap-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             @if ($item['image'])
                                 <img 
@@ -68,6 +68,16 @@
 
                             <div class="flex-1 min-w-0">
                                 <h4 class="font-semibold text-sm line-clamp-1">{{ $item['name'] }}</h4>
+                                @if(!empty($item['variantName']))
+                                    <flux:text class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                        {{ $item['variantName'] }}
+                                    </flux:text>
+                                @endif
+                                @if(!empty($item['sku']))
+                                    <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        SKU: {{ $item['sku'] }}
+                                    </flux:text>
+                                @endif
                                  <flux:text class="text-green-600 dark:text-green-400 font-medium mt-1">
                                     ${{ number_format($item['price'], 2) }}
                                 </flux:text>
@@ -80,7 +90,7 @@
                                 <div class="flex items-center gap-2">
                                      <flux:button
                                         variant="subtle"
-                                        wire:click="updateQuantity({{ $item['id'] }}, {{ $item['quantity'] - 1 }})"
+                                        wire:click="updateQuantity('{{ $cartKey }}', {{ $item['quantity'] - 1 }})"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
@@ -89,7 +99,7 @@
                                     <span class="w-8 text-center font-medium">{{ $item['quantity'] }}</span>
                                      <flux:button
                                         variant="subtle"
-                                        wire:click="updateQuantity({{ $item['id'] }}, {{ $item['quantity'] + 1 }})"
+                                        wire:click="updateQuantity('{{ $cartKey }}', {{ $item['quantity'] + 1 }})"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -98,7 +108,7 @@
                                 </div>
                                 <flux:button
                                     variant="danger"
-                                    wire:click="removeFromCart({{ $item['id'] }})"
+                                    wire:click="removeFromCart('{{ $cartKey }}')"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
