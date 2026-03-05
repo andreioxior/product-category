@@ -39,7 +39,7 @@ class Cart extends Component
             $sku = $data['sku'] ?? null;
         }
 
-        if (!$productId || !$name) {
+        if (! $productId || ! $name) {
             return;
         }
 

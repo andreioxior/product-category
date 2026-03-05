@@ -375,13 +375,15 @@ class ProductForm extends Component
             $rules['stock_quantity'] = 'nullable|integer|min:0';
         }
 
-        foreach ($this->variants as $index => $variant) {
-            $rules["variants.{$index}.name"] = 'required|string|max:255';
-            $rules["variants.{$index}.type"] = 'required|string|in:color,size';
-            $rules["variants.{$index}.price"] = 'nullable|numeric|min:0';
-            $rules["variants.{$index}.sku_suffix"] = 'nullable|string|max:50';
-            $rules["variants.{$index}.stock_quantity"] = 'nullable|integer|min:0';
-            $rules["variants.{$index}.is_active"] = 'boolean';
+        if ($this->has_variants) {
+            foreach ($this->variants as $index => $variant) {
+                $rules["variants.{$index}.name"] = 'required|string|max:255';
+                $rules["variants.{$index}.type"] = 'required|string|in:color,size';
+                $rules["variants.{$index}.price"] = 'nullable|numeric|min:0';
+                $rules["variants.{$index}.sku_suffix"] = 'nullable|string|max:50';
+                $rules["variants.{$index}.stock_quantity"] = 'nullable|integer|min:0';
+                $rules["variants.{$index}.is_active"] = 'boolean';
+            }
         }
 
         if ($this->createNewBike === '1') {
