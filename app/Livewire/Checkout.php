@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -67,6 +68,18 @@ class Checkout extends Component
             $this->customerName = $user->name ?? '';
             $this->customerEmail = $user->email ?? '';
         }
+    }
+
+    #[On('refresh-cart')]
+    public function refreshCart(): void
+    {
+        $this->cart = session()->get('cart', []);
+
+        if (empty($this->cart)) {
+            $this->redirect(route('products'), navigate: true);
+        }
+
+        $this->calculateTotals();
     }
 
     public function calculateTotals(): void

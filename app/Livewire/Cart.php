@@ -18,6 +18,12 @@ class Cart extends Component
         $this->cart = session()->get('cart', []);
     }
 
+    #[On('refresh-cart')]
+    public function refreshCart(): void
+    {
+        $this->cart = session()->get('cart', []);
+    }
+
     #[On('addToCart')]
     public function addToCart(
         $productId = null,
@@ -64,7 +70,7 @@ class Cart extends Component
 
         session()->put('cart', $cart);
         $this->cart = $cart;
-        $this->dispatch('cart-updated');
+        $this->dispatch('cart-updated', $cart);
     }
 
     public function removeFromCart($cartKey): void
@@ -73,7 +79,7 @@ class Cart extends Component
         unset($cart[$cartKey]);
         session()->put('cart', $cart);
         $this->cart = $cart;
-        $this->dispatch('cart-updated');
+        $this->dispatch('cart-updated', $cart);
     }
 
     public function updateQuantity($cartKey, $quantity): void
@@ -87,14 +93,14 @@ class Cart extends Component
             $this->cart = $cart;
         }
 
-        $this->dispatch('cart-updated');
+        $this->dispatch('cart-updated', $cart);
     }
 
     public function clearCart(): void
     {
         session()->forget('cart');
         $this->cart = [];
-        $this->dispatch('cart-updated');
+        $this->dispatch('cart-updated', []);
     }
 
     public function getCartItemsCountProperty(): int
